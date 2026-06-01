@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scanner Pro - Control Asistencia</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e1e1e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon-512.png">
+
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
@@ -223,7 +230,6 @@
             text-transform: uppercase;
         }
 
-        /* Botón de descarga de Excel */
         .btn-download {
             background-color: transparent;
             border: 1px solid var(--primary-glow);
@@ -354,14 +360,12 @@
             reader.readAsArrayBuffer(file);
         });
 
-        // NUEVA FUNCIÓN PARA EXPORTAR LA BASE DE DATOS LOCAL A EXCEL
         function exportToExcel() {
             if (db.length === 0) {
                 showNotification('No hay registros para exportar todavía', 'error');
                 return;
             }
 
-            // Mapeamos los datos acumulados a un formato limpio para el Excel
             const dataToExport = db.map(entry => ({
                 'FECHA': entry.fecha,
                 'HORA': entry.hora,
@@ -371,16 +375,13 @@
                 'ID_QR': entry.id
             }));
 
-            // Creamos el libro de trabajo de Excel en memoria
             const worksheet = XLSX.utils.json_to_sheet(dataToExport);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Asistencia_Historica");
 
-            // Generar nombre automático basado en la fecha de la descarga
             const fechaHoy = new Date().toISOString().slice(0, 10);
             const nombreArchivo = `Reporte_Asistencia_${fechaHoy}.xlsx`;
 
-            // Forzar la descarga en el navegador del usuario
             XLSX.writeFile(workbook, nombreArchivo);
             showNotification('📊 Excel generado y descargado', 'success');
         }
@@ -515,6 +516,15 @@
                 
             html5QrcodeScanner.render(onScanSuccess, onScanFailure);
         });
+
+        // REGISTRO DEL SERVICE WORKER PARA LA INSTALACIÓN
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker activo', reg))
+                    .catch(err => console.error('Error con el Service Worker', err));
+            });
+        }
     </script>
 </body>
 </html>
