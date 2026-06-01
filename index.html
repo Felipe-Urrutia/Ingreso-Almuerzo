@@ -5,12 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scanner Pro - Control Asistencia</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
     <style>
         :root {
             --bg-deep: #121212; 
             --bg-panel: #1e1e1e; 
             --primary-glow: #00ff88; 
-            --error-glow: #ff0055; 
+            --error-glow: #ff0055;
+            --info-glow: #00bfff; 
             --text-main: #e0e0e0;
             --text-muted: #888;
             --border-color: #333;
@@ -39,6 +42,9 @@
             position: fixed;
             top: 0;
             z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         h2 {
@@ -53,6 +59,29 @@
             font-size: 0.8em;
             color: var(--text-muted);
             margin-top: 2px;
+            margin-bottom: 10px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+        
+        .custom-file-upload {
+            border: 1px solid var(--info-glow);
+            color: var(--info-glow);
+            background-color: transparent;
+            padding: 6px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+        
+        .custom-file-upload:hover {
+            background-color: rgba(0, 191, 255, 0.1);
+            box-shadow: 0 0 10px rgba(0, 191, 255, 0.4);
         }
 
         main {
@@ -60,17 +89,16 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start; /* Cambiado para mejor alineación en móviles */
+            justify-content: flex-start;
             width: 100%;
-            margin-top: 100px; /* Más espacio para la cabecera */
+            margin-top: 110px; 
             padding-bottom: 20px;
         }
 
-        /* CONTENEDOR DEL ESCÁNER CORREGIDO */
         .scanner-wrapper {
             width: 90%;
             max-width: 500px;
-            margin: 0 auto; /* Centrado absoluto */
+            margin: 0 auto;
             position: relative;
             background-color: var(--bg-panel);
             border-radius: 20px;
@@ -98,7 +126,6 @@
             100% { top: 100%; }
         }
 
-        /* FORZAR CENTRADO DEL VIDEO INTERNO */
         #reader {
             width: 100% !important;
             border: none !important;
@@ -108,10 +135,10 @@
         #reader video {
             width: 100% !important;
             height: auto !important;
-            object-fit: cover !important; /* Evita que se deforme */
+            object-fit: cover !important;
             display: block !important;
-            margin: 0 auto !important; /* Centra el video */
-            border-radius: 18px; /* Encaja con los bordes externos */
+            margin: 0 auto !important;
+            border-radius: 18px;
         }
 
         #reader__dashboard_section_csr button {
@@ -140,6 +167,11 @@
             border-color: var(--error-glow);
         }
 
+        .scanner-wrapper.info {
+            box-shadow: 0 0 50px rgba(0, 191, 255, 0.6);
+            border-color: var(--info-glow);
+        }
+
         #notification-container {
             position: fixed;
             bottom: 20px;
@@ -162,15 +194,17 @@
 
         .toast.success { border-left-color: var(--primary-glow); }
         .toast.error { border-left-color: var(--error-glow); }
+        .toast.info { border-left-color: var(--info-glow); }
 
         .results-container {
             width: 90%;
-            max-width: 500px;
+            max-width: 650px;
             background: var(--bg-panel);
             padding: 15px;
             border-radius: 15px;
             border: 1px solid var(--border-color);
             margin-top: 25px;
+            overflow-x: auto;
         }
 
         .results-header {
@@ -200,6 +234,7 @@
             font-weight: normal;
             text-align: left;
             padding: 8px;
+            white-space: nowrap;
         }
 
         td {
@@ -209,6 +244,15 @@
 
         td strong { color: var(--text-main); }
         tr:last-child td { border-bottom: none; }
+        
+        .tag-seccion {
+            background: #333;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.85em;
+            color: #00ff88;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -216,6 +260,11 @@
     <header>
         <h2>Scanner Pro</h2>
         <div class="subtitle">Aprendiendo y registrando cada día</div>
+        
+        <label for="excel-upload" class="custom-file-upload">
+            <span id="btn-text">Cargar BD Personal (.xlsx)</span>
+        </label>
+        <input id="excel-upload" type="file" accept=".xlsx, .xls" />
     </header>
 
     <main>
@@ -230,9 +279,11 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Identificador (QR)</th>
-                        <th>Fecha</th>
                         <th>Hora</th>
+                        <th>Nombre</th>
+                        <th>Sección</th>
+                        <th>Horario</th>
+                        <th>ID (QR)</th>
                     </tr>
                 </thead>
                 <tbody id="scanned-list">
@@ -248,12 +299,45 @@
     <script>
         let isProcessing = false;
         let db = JSON.parse(localStorage.getItem('qrRegistros')) || [];
+        let dbPersonal = JSON.parse(localStorage.getItem('dbPersonal')) || [];
+
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
+        if(dbPersonal.length > 0) {
+            document.getElementById('btn-text').textContent = `BD Cargada (${dbPersonal.length} personas)`;
+        }
+
+        // Lector de archivo Excel mapeando las nuevas columnas
+        document.getElementById('excel-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheet];
+                    const jsonResult = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    if(jsonResult.length > 0) {
+                        dbPersonal = jsonResult;
+                        localStorage.setItem('dbPersonal', JSON.stringify(dbPersonal));
+                        document.getElementById('btn-text').textContent = `BD Cargada (${dbPersonal.length} personas)`;
+                        showNotification(`¡Plantilla cargada con éxito!`, 'info');
+                    } else {
+                        showNotification('El archivo Excel está vacío', 'error');
+                    }
+                } catch (error) {
+                    showNotification('Error al leer el archivo Excel', 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
         function playSound(type) {
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
             const oscillator = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
             oscillator.connect(gainNode);
@@ -297,10 +381,17 @@
             
             reversedDb.forEach(entry => {
                 const tr = document.createElement('tr');
+                
+                const nombreMostrar = entry.nombre ? entry.nombre : "-";
+                const seccionMostrar = entry.seccion ? `<span class="tag-seccion">${entry.seccion}</span>` : "-";
+                const horarioMostrar = entry.horario ? entry.horario : "-";
+
                 tr.innerHTML = `
-                    <td><strong>${entry.id}</strong></td>
-                    <td>${entry.fecha}</td>
                     <td>${entry.hora}</td>
+                    <td><strong>${nombreMostrar}</strong></td>
+                    <td>${seccionMostrar}</td>
+                    <td>${horarioMostrar}</td>
+                    <td style="color:#666;">${entry.id}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -326,8 +417,24 @@
 
             playSound('success');
             
+            // Búsqueda flexible por ID tolerando texto o número plano
+            const empleado = dbPersonal.find(persona => String(persona.ID || persona.id || persona.Id) === String(decodedText));
+            
+            let nombrePersona = "Desconocido";
+            let seccionPersona = "Sin Sección";
+            let horarioPersona = "Sin Horario";
+
+            if (empleado) {
+                nombrePersona = empleado.NOMBRE || empleado.Nombre || empleado.nombre || "Sin Nombre";
+                seccionPersona = empleado.SECCION || empleado.Seccion || empleado.seccion || empleado.SECCIÓN || empleado.Sección || empleado.sección || "Sin Sección";
+                horarioPersona = empleado.HORARIO || empleado.Horario || empleado.horario || "Sin Horario";
+            }
+
             const nuevoRegistro = {
                 id: decodedText,
+                nombre: nombrePersona,
+                seccion: seccionPersona,
+                horario: horarioPersona,
                 fecha: fechaActual,
                 hora: horaActual
             };
@@ -336,7 +443,12 @@
             localStorage.setItem('qrRegistros', JSON.stringify(db));
 
             updateTable();
-            showNotification(`✅ Exitoso: ${decodedText}`, 'success');
+            
+            if (empleado) {
+                showNotification(`✅ Ingreso: ${nombrePersona}`, 'success');
+            } else {
+                showNotification(`✅ QR Guardado (Sin datos en BD)`, 'info');
+            }
         }
 
         function onScanFailure(error) {}
@@ -349,7 +461,6 @@
                 { 
                     fps: 15,
                     qrbox: {width: 250, height: 250},
-                    // Dejamos que la librería defina la proporción para que no pelee con nuestro CSS
                     aspectRatio: 1.0 
                 },
                 false);
