@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner Pro - Control Asistencia</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        /* Definición de la paleta de colores y variables */
+        :root {
+            --bg-deep: #121212; /* Fondo muy oscuro */
+            --bg-panel: #1e1e1e; /* Paneles */
+            --primary-glow: #00ff88; /* Verde neón para éxito */
+            --error-glow: #ff0055; /* Magenta/rojo para error */
+            --text-main: #e0e0e0;
+            --text-muted: #888;
+            --border-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Cabecera minimalista e integrada */
+        header {
+            width: 100%;
+            text-align: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(30, 30, 30, 0.8);
+            backdrop-filter: blur(5px);
+            position: fixed;
+            top: 0;
+            z-index: 100;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 1.2em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-main);
+        }
+
+        .subtitle {
+            font-size: 0.8em;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* --- SECCIÓN PRINCIPAL: EL ESCÁNER --- */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-top: 80px; /* Espacio para el header fijo */
+            padding-bottom: 20px;
+        }
+
+        /* Contenedor del escáner que predomina */
+        .scanner-wrapper {
+            width: 90%;
+            max-width: 600px; /* Más grande que antes */
+            aspect-ratio: 4/3; /* Proporción más profesional */
+            position: relative;
+            background-color: var(--bg-panel);
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.2); /* Brillo sutil inicial */
+            border: 2px solid #333;
+            overflow: hidden;
+            transition: box-shadow 0.3s ease;
+        }
+
+        /* Efecto de línea de escaneo láser animada */
+        .scanner-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(0, 255, 136, 0.6);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+            animation: scanningLine 2.5s infinite linear;
+            z-index: 10;
+        }
+
+        @keyframes scanningLine {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+
+        /* Estilos específicos para la librería html5-qrcode */
+        #reader {
+            width: 100% !important;
+            height: 100% !important;
+            border: none !important;
+        }
+
+        /* Ocultar botones y textos feos de la librería por defecto */
+        #reader__dashboard_section_csr button {
+            background-color: var(--bg-deep);
+            color: var(--primary-glow);
+            border: 1px solid var(--primary-glow);
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.8em;
+        }
+        #reader__status_span { color: var(--text-muted) !important; font-size: 0.8em;}
+        #reader img { opacity: 0.3; } /* Imagen de cámara cuando está apagada */
+
+        /* Estados visuales al escanear */
+        .scanner-wrapper.success {
+            box-shadow: 0 0 50px rgba(0, 255, 136, 0.6);
+            border-color: var(--primary-glow);
+        }
+
+        .scanner-wrapper.error {
+            box-shadow: 0 0 50px rgba(255, 0, 85, 0.6);
+            border-color: var(--error-glow);
+        }
+
+        /* --- NOTIFICACIONES (TOASTS) FLOATING --- */
+        #notification-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .toast {
+            background-color: var(--bg-panel);
+            color: var(--text-main);
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin-top: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            display: none;
+            border-left: 5px solid transparent;
+            min-width: 250px;
+            font-weight: bold;
+        }
+
+        .toast.success { border-left-color: var(--primary-glow); }
+        .toast.error { border-left-color: var(--error-glow); }
+
+        /* --- TABLA DE REGISTROS (INTEGRADA ABAJO) --- */
+        .results-container {
+            width: 95%;
+            max-width: 600px;
+            background: var(--bg-panel);
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            margin-top: 20px;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .results-header h3 {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 1em;
+            text-transform: uppercase;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+        }
+
+        th {
+            color: var(--text-muted);
+            font-weight: normal;
+            text-align: left;
+            padding: 8px;
+        }
+
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        td strong { color: var(--text-main); }
+        tr:last-child td { border-bottom: none; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2>Scanner Pro</h2>
+        <div class="subtitle">Aprendiendo y registrando cada día</div>
+    </header>
+
+    <main>
+        <div class="scanner-wrapper" id="scanner-visuals">
+            <div id="reader"></div>
+        </div>
+
+        <div class="results-container">
+            <div class="results-header">
+                <h3>Registros de Hoy</h3>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Identificador (QR)</th>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                    </tr>
+                </thead>
+                <tbody id="scanned-list">
+                    </tbody>
+            </table>
+        </div>
+    </main>
+
+    <div id="notification-container">
+        <div id="notification" class="toast"></div>
+    </div>
+
+    <script>
+        // MANTENEMOS TODA LA LÓGICA ANTERIOR (Sonidos, LocalStorage, Duplicados)
+        
+        let isProcessing = false;
+        let db = JSON.parse(localStorage.getItem('qrRegistros')) || [];
+
+        // Generador de sonidos usando Web Audio API
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            gainNode.gain.value = 1; // Volumen al máximo
+
+            if (type === 'success') {
+                oscillator.type = 'square';
+                oscillator.frequency.value = 900;
+                oscillator.start();
+                setTimeout(() => oscillator.stop(), 150);
+            } else if (type === 'error') {
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.value = 250;
+                oscillator.start();
+                setTimeout(() => oscillator.stop(), 400);
+            }
+        }
+
+        // Mostrar notificaciones tipo "Toast" flotantes
+        function showNotification(message, type) {
+            const notif = document.getElementById('notification');
+            const visualWrapper = document.getElementById('scanner-visuals');
+            
+            notif.textContent = message;
+            notif.className = `toast ${type}`;
+            notif.style.display = 'block';
+
+            // Añadir feedback visual al escáner
+            visualWrapper.classList.add(type);
+            
+            setTimeout(() => {
+                notif.style.display = 'none';
+                visualWrapper.classList.remove(type);
+            }, 3500);
+        }
+
+        function updateTable() {
+            const tbody = document.getElementById('scanned-list');
+            tbody.innerHTML = ''; 
+            
+            // Mostrar solo los más recientes (primero)
+            const reversedDb = [...db].reverse(); 
+            
+            reversedDb.forEach(entry => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${entry.id}</strong></td>
+                    <td>${entry.fecha}</td>
+                    <td>${entry.hora}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function onScanSuccess(decodedText) {
+            if (isProcessing) return; 
+            
+            isProcessing = true;
+            // Pausa de 2 segundos para no leer el mismo frame
+            setTimeout(() => isProcessing = false, 2000); 
+
+            const now = new Date();
+            // Formatear fecha y hora para Chile (preservado)
+            const fechaActual = now.toLocaleDateString('es-CL'); 
+            const horaActual = now.toLocaleTimeString('es-CL');
+
+            // 1. Revisar si ya fue registrado el día actual
+            const yaRegistrado = db.find(registro => registro.id === decodedText && registro.fecha === fechaActual);
+
+            if (yaRegistrado) {
+                playSound('error');
+                showNotification(`⚠️ Ya registrado hoy.`, 'error');
+                return;
+            }
+
+            // 2. Registro exitoso
+            playSound('success');
+            
+            const nuevoRegistro = {
+                id: decodedText,
+                fecha: fechaActual,
+                hora: horaActual
+            };
+
+            db.push(nuevoRegistro);
+            // 3. Guardar en LocalStorage (preservado)
+            localStorage.setItem('qrRegistros', JSON.stringify(db));
+
+            updateTable();
+            showNotification(`✅ Exitodo: ${decodedText}`, 'success');
+        }
+
+        function onScanFailure(error) {
+            // Ignorar errores de frames vacíos
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            updateTable();
+
+            // Configuración de la librería html5-qrcode
+            let html5QrcodeScanner = new Html5QrcodeScanner(
+                "reader",
+                { 
+                    fps: 15, // Un poco más rápido para mejor sensación
+                    qrbox: {width: 250, height: 250},
+                    aspectRatio: 1.33333 // 4:3 para el video interno
+                },
+                false);
+                
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        });
+    </script>
+</body>
+</html>
