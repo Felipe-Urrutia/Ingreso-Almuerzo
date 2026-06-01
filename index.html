@@ -207,4 +207,155 @@
             border-bottom: 1px solid #2a2a2a;
         }
 
-        td strong { color: var(--text
+        td strong { color: var(--text-main); }
+        tr:last-child td { border-bottom: none; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2>Scanner Pro</h2>
+        <div class="subtitle">Aprendiendo y registrando cada día</div>
+    </header>
+
+    <main>
+        <div class="scanner-wrapper" id="scanner-visuals">
+            <div id="reader"></div>
+        </div>
+
+        <div class="results-container">
+            <div class="results-header">
+                <h3>Registros de Hoy</h3>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Identificador (QR)</th>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                    </tr>
+                </thead>
+                <tbody id="scanned-list">
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <div id="notification-container">
+        <div id="notification" class="toast"></div>
+    </div>
+
+    <script>
+        let isProcessing = false;
+        let db = JSON.parse(localStorage.getItem('qrRegistros')) || [];
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            gainNode.gain.value = 1; 
+
+            if (type === 'success') {
+                oscillator.type = 'square';
+                oscillator.frequency.value = 900;
+                oscillator.start();
+                setTimeout(() => oscillator.stop(), 150);
+            } else if (type === 'error') {
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.value = 250;
+                oscillator.start();
+                setTimeout(() => oscillator.stop(), 400);
+            }
+        }
+
+        function showNotification(message, type) {
+            const notif = document.getElementById('notification');
+            const visualWrapper = document.getElementById('scanner-visuals');
+            
+            notif.textContent = message;
+            notif.className = `toast ${type}`;
+            notif.style.display = 'block';
+
+            visualWrapper.classList.add(type);
+            
+            setTimeout(() => {
+                notif.style.display = 'none';
+                visualWrapper.classList.remove(type);
+            }, 3500);
+        }
+
+        function updateTable() {
+            const tbody = document.getElementById('scanned-list');
+            tbody.innerHTML = ''; 
+            
+            const reversedDb = [...db].reverse(); 
+            
+            reversedDb.forEach(entry => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${entry.id}</strong></td>
+                    <td>${entry.fecha}</td>
+                    <td>${entry.hora}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function onScanSuccess(decodedText) {
+            if (isProcessing) return; 
+            
+            isProcessing = true;
+            setTimeout(() => isProcessing = false, 2000); 
+
+            const now = new Date();
+            const fechaActual = now.toLocaleDateString('es-CL'); 
+            const horaActual = now.toLocaleTimeString('es-CL');
+
+            const yaRegistrado = db.find(registro => registro.id === decodedText && registro.fecha === fechaActual);
+
+            if (yaRegistrado) {
+                playSound('error');
+                showNotification(`⚠️ Ya registrado hoy.`, 'error');
+                return;
+            }
+
+            playSound('success');
+            
+            const nuevoRegistro = {
+                id: decodedText,
+                fecha: fechaActual,
+                hora: horaActual
+            };
+
+            db.push(nuevoRegistro);
+            localStorage.setItem('qrRegistros', JSON.stringify(db));
+
+            updateTable();
+            showNotification(`✅ Exitoso: ${decodedText}`, 'success');
+        }
+
+        function onScanFailure(error) {}
+
+        document.addEventListener("DOMContentLoaded", function() {
+            updateTable();
+
+            let html5QrcodeScanner = new Html5QrcodeScanner(
+                "reader",
+                { 
+                    fps: 15,
+                    qrbox: {width: 250, height: 250},
+                    // Dejamos que la librería defina la proporción para que no pelee con nuestro CSS
+                    aspectRatio: 1.0 
+                },
+                false);
+                
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        });
+    </script>
+</body>
+</html>
