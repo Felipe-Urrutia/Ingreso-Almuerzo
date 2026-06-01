@@ -223,6 +223,24 @@
             text-transform: uppercase;
         }
 
+        /* Botón de descarga de Excel */
+        .btn-download {
+            background-color: transparent;
+            border: 1px solid var(--primary-glow);
+            color: var(--primary-glow);
+            padding: 5px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .btn-download:hover {
+            background-color: rgba(0, 255, 136, 0.1);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -275,6 +293,7 @@
         <div class="results-container">
             <div class="results-header">
                 <h3>Registros de Hoy</h3>
+                <button class="btn-download" onclick="exportToExcel()">Descargar Reporte</button>
             </div>
             <table>
                 <thead>
@@ -307,7 +326,6 @@
             document.getElementById('btn-text').textContent = `BD Cargada (${dbPersonal.length} personas)`;
         }
 
-        // Lector de archivo Excel mapeando las nuevas columnas
         document.getElementById('excel-upload').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -335,6 +353,37 @@
             };
             reader.readAsArrayBuffer(file);
         });
+
+        // NUEVA FUNCIÓN PARA EXPORTAR LA BASE DE DATOS LOCAL A EXCEL
+        function exportToExcel() {
+            if (db.length === 0) {
+                showNotification('No hay registros para exportar todavía', 'error');
+                return;
+            }
+
+            // Mapeamos los datos acumulados a un formato limpio para el Excel
+            const dataToExport = db.map(entry => ({
+                'FECHA': entry.fecha,
+                'HORA': entry.hora,
+                'NOMBRE': entry.nombre || 'Desconocido',
+                'SECCIÓN': entry.seccion || 'Sin Sección',
+                'HORARIO': entry.horario || 'Sin Horario',
+                'ID_QR': entry.id
+            }));
+
+            // Creamos el libro de trabajo de Excel en memoria
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Asistencia_Historica");
+
+            // Generar nombre automático basado en la fecha de la descarga
+            const fechaHoy = new Date().toISOString().slice(0, 10);
+            const nombreArchivo = `Reporte_Asistencia_${fechaHoy}.xlsx`;
+
+            // Forzar la descarga en el navegador del usuario
+            XLSX.writeFile(workbook, nombreArchivo);
+            showNotification('📊 Excel generado y descargado', 'success');
+        }
 
         function playSound(type) {
             if (audioCtx.state === 'suspended') { audioCtx.resume(); }
@@ -417,7 +466,6 @@
 
             playSound('success');
             
-            // Búsqueda flexible por ID tolerando texto o número plano
             const empleado = dbPersonal.find(persona => String(persona.ID || persona.id || persona.Id) === String(decodedText));
             
             let nombrePersona = "Desconocido";
