@@ -21,6 +21,7 @@
             --primary-glow: #00ff88; 
             --error-glow: #ff0055;
             --info-glow: #00bfff; 
+            --warning-glow: #ffaa00;
             --text-main: #e0e0e0;
             --text-muted: #888;
             --border-color: #333;
@@ -67,6 +68,31 @@
             color: var(--text-muted);
             margin-top: 2px;
             margin-bottom: 10px;
+        }
+
+        /* --- BOTÓN DE CANDADO (ADMIN) --- */
+        .admin-toggle-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: transparent;
+            border: 1px solid var(--text-muted);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .admin-toggle-btn.active {
+            border-color: var(--warning-glow);
+            color: var(--warning-glow);
+            box-shadow: 0 0 10px rgba(255, 170, 0, 0.2);
         }
 
         input[type="file"] {
@@ -148,7 +174,6 @@
             border-radius: 18px;
         }
 
-        /* Estilo para los botones generados por la librería del QR */
         button[id*="html5-qrcode-button"] {
             background-color: var(--bg-deep) !important;
             color: var(--primary-glow) !important;
@@ -164,6 +189,53 @@
         .scanner-wrapper.success { box-shadow: 0 0 50px rgba(0, 255, 136, 0.6); border-color: var(--primary-glow); }
         .scanner-wrapper.error { box-shadow: 0 0 50px rgba(255, 0, 85, 0.6); border-color: var(--error-glow); }
         .scanner-wrapper.info { box-shadow: 0 0 50px rgba(0, 191, 255, 0.6); border-color: var(--info-glow); }
+
+        .manual-box {
+            width: 90%;
+            max-width: 470px;
+            background: var(--bg-panel);
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .manual-box input {
+            flex: 1;
+            background: var(--bg-deep);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            color: var(--text-main);
+            font-size: 0.9em;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        .manual-box input:focus {
+            border-color: var(--info-glow);
+        }
+
+        .manual-box button {
+            background: transparent;
+            border: 1px solid var(--info-glow);
+            color: var(--info-glow);
+            padding: 0 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.8em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .manual-box button:hover {
+            background: rgba(0, 191, 255, 0.1);
+            box-shadow: 0 0 10px rgba(0, 191, 255, 0.3);
+        }
 
         #notification-container {
             position: fixed;
@@ -207,6 +279,7 @@
             margin-bottom: 10px;
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 10px;
+            gap: 5px;
         }
 
         .results-header h3 {
@@ -214,6 +287,12 @@
             color: var(--text-muted);
             font-size: 1em;
             text-transform: uppercase;
+            flex-grow: 1;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
         }
 
         .btn-download {
@@ -231,6 +310,38 @@
         .btn-download:hover {
             background-color: rgba(0, 255, 136, 0.1);
             box-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
+        }
+
+        .btn-clear-all {
+            background-color: transparent;
+            border: 1px solid var(--error-glow);
+            color: var(--error-glow);
+            padding: 5px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .btn-clear-all:hover {
+            background-color: rgba(255, 0, 85, 0.1);
+            box-shadow: 0 0 10px rgba(255, 0, 85, 0.4);
+        }
+
+        .btn-delete-row {
+            background: transparent;
+            border: none;
+            color: var(--error-glow);
+            cursor: pointer;
+            font-size: 1.1em;
+            padding: 2px 5px;
+            border-radius: 5px;
+            transition: background 0.2s;
+        }
+        
+        .btn-delete-row:hover {
+            background: rgba(255, 0, 85, 0.1);
         }
 
         table {
@@ -263,6 +374,11 @@
             color: #00ff88;
             border: 1px solid rgba(0, 255, 136, 0.2);
         }
+
+        /* --- CLASE CONTROLADORA DE PRIVACIDAD --- */
+        .admin-only {
+            display: none !important; /* Oculto por defecto */
+        }
     </style>
 </head>
 <body>
@@ -271,7 +387,11 @@
         <h2>Scanner Pro</h2>
         <div class="subtitle">Aprendiendo y registrando cada día</div>
         
-        <label for="excel-upload" class="custom-file-upload">
+        <button id="admin-btn" class="admin-toggle-btn" onclick="toggleAdminMode()">
+            <span id="lock-icon">🔒</span> <span id="lock-text">Modo Kiosco</span>
+        </button>
+
+        <label for="excel-upload" class="custom-file-upload admin-only">
             <span id="btn-text">Cargar BD Personal (.xlsx)</span>
         </label>
         <input id="excel-upload" type="file" accept=".xlsx, .xls" />
@@ -282,10 +402,18 @@
             <div id="reader"></div>
         </div>
 
+        <div class="manual-box admin-only">
+            <input type="text" id="manual-input" placeholder="Escribir ID manualmente y presionar Enter..." autocomplete="off">
+            <button onclick="processManualInput()">Registrar</button>
+        </div>
+
         <div class="results-container">
             <div class="results-header">
                 <h3>Registros de Hoy</h3>
-                <button class="btn-download" onclick="exportToExcel()">Descargar Reporte</button>
+                <div class="action-buttons">
+                    <button class="btn-clear-all admin-only" onclick="clearAllRecords()">Vaciar Todo</button>
+                    <button class="btn-download" onclick="exportToExcel()">Descargar Reporte</button>
+                </div>
             </div>
             <table>
                 <thead>
@@ -295,6 +423,7 @@
                         <th>Sección</th>
                         <th>Horario</th>
                         <th>ID (QR)</th>
+                        <th class="admin-only">Acción</th>
                     </tr>
                 </thead>
                 <tbody id="scanned-list">
@@ -308,7 +437,12 @@
     </div>
 
     <script>
-        // --- CONFIGURACIÓN Y ESTADO ---
+        // --- CONFIGURACIÓN DE SEGURIDAD ---
+        const MASTER_PIN = "2525"; // 🔑 CAMBIA AQUÍ TU CONTRASEÑA/PIN DE ADMINISTRADOR
+        let isAdminActive = false;
+        let adminTimer = null;
+
+        // --- ESTADO GENERAL ---
         let isProcessing = false;
         let db = JSON.parse(localStorage.getItem('qrRegistros')) || [];
         let dbPersonal = JSON.parse(localStorage.getItem('dbPersonal')) || [];
@@ -318,14 +452,89 @@
             document.getElementById('btn-text').textContent = `BD Cargada (${dbPersonal.length} personas)`;
         }
 
-        // --- LÓGICA LECTOR EXTERNO (Pistola USB/Bluetooth) ---
+        // --- SISTEMA DE AUTENTICACIÓN (LOCK / UNLOCK) ---
+        function toggleAdminMode() {
+            if (isAdminActive) {
+                // Si ya está activo, se bloquea manualmente de inmediato
+                lockAdminMode();
+                showNotification('Seguridad activada. Modo Kiosco.', 'info');
+            } else {
+                // Solicitar PIN de acceso
+                const inputPin = prompt("Introduce el PIN de Administrador para desbloquear funciones:");
+                if (inputPin === MASTER_PIN) {
+                    unlockAdminMode();
+                    showNotification('🔓 Modo Administrador Activado', 'success');
+                } else if (inputPin !== null) {
+                    playSound('error');
+                    showNotification('❌ PIN Incorrecto. Acceso denegado.', 'error');
+                }
+            }
+        }
+
+        function unlockAdminMode() {
+            isAdminActive = true;
+            
+            // Actualizar botón de estado
+            const btn = document.getElementById('admin-btn');
+            btn.classList.add('active');
+            document.getElementById('lock-icon').textContent = '🔓';
+            document.getElementById('lock-text').textContent = 'Modo Admin';
+
+            // Mostrar elementos ocultos usando estilos dinámicos
+            document.querySelectorAll('.admin-only').forEach(el => {
+                if(el.tagName === 'TH' || el.tagName === 'TD') {
+                    el.style.setProperty('display', 'table-cell', 'important');
+                } else if(el.tagName === 'LABEL' || el.tagName === 'BUTTON') {
+                    el.style.setProperty('display', 'inline-block', 'important');
+                } else {
+                    el.style.setProperty('display', 'flex', 'important');
+                }
+            });
+
+            updateTable(); // Re-renderizar tabla para mostrar botones de eliminación individuales
+            resetAdminTimeout(); // Iniciar temporizador de auto-bloqueo
+        }
+
+        function lockAdminMode() {
+            isAdminActive = false;
+            clearTimeout(adminTimer); // Limpiar temporizador
+
+            const btn = document.getElementById('admin-btn');
+            btn.classList.remove('active');
+            document.getElementById('lock-icon').textContent = '🔒';
+            document.getElementById('lock-text').textContent = 'Modo Kiosco';
+
+            // Volver a ocultar todo
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.style.setProperty('display', 'none', 'important');
+            });
+
+            updateTable(); // Re-renderizar tabla para ocultar las cruces de borrado
+        }
+
+        // Temporizador de seguridad por olvido (2 minutos)
+        function resetAdminTimeout() {
+            if (!isAdminActive) return;
+            clearTimeout(adminTimer);
+            adminTimer = setTimeout(() => {
+                lockAdminMode();
+                showNotification('🔒 Bloqueo automático por inactividad', 'info');
+            }, 120000); // 120000 ms = 2 minutos
+        }
+
+        // Registrar interacciones para evitar que se bloquee mientras el admin la está usando
+        document.addEventListener('click', resetAdminTimeout);
+        document.addEventListener('keypress', resetAdminTimeout);
+
+
+        // --- LÓGICA LECTOR EXTERNO (Pistola QR) ---
         let scanBuffer = '';
         let lastKeyTime = Date.now();
 
         document.addEventListener('keydown', function(e) {
+            if (document.activeElement === document.getElementById('manual-input')) return;
+
             const currentTime = Date.now();
-            
-            // Detectar si la escritura es rápida (Scanner) o lenta (Humano)
             if (currentTime - lastKeyTime > 50) {
                 scanBuffer = '';
             }
@@ -334,7 +543,7 @@
             if (e.key === 'Enter') {
                 if (scanBuffer.length > 0) {
                     e.preventDefault();
-                    onScanSuccess(scanBuffer); // Procesar el código capturado
+                    onScanSuccess(scanBuffer);
                     scanBuffer = ''; 
                 }
             } else {
@@ -343,6 +552,50 @@
                 }
             }
         });
+
+        // --- MANEJO INPUT MANUAL (SÓLO ADMIN TRAS VERIFICACIÓN) ---
+        function processManualInput() {
+            if(!isAdminActive) return;
+            const inputElement = document.getElementById('manual-input');
+            const value = inputElement.value.trim();
+            if (value.length > 0) {
+                onScanSuccess(value);
+                inputElement.value = '';
+            } else {
+                showNotification('Por favor, ingresa un ID válido', 'error');
+            }
+        }
+
+        document.getElementById('manual-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                processManualInput();
+            }
+        });
+
+        // --- ELIMINACIÓN Y LIMPIEZA (SÓLO ADMIN) ---
+        function deleteRecord(index) {
+            if(!isAdminActive) return;
+            if (confirm("¿Estás seguro de eliminar este marcaje de asistencia?")) {
+                db.splice(index, 1);
+                localStorage.setItem('qrRegistros', JSON.stringify(db));
+                updateTable();
+                showNotification('Registro eliminado con éxito', 'info');
+            }
+        }
+
+        function clearAllRecords() {
+            if(!isAdminActive) return;
+            if (db.length === 0) {
+                showNotification('El historial ya está vacío', 'info');
+                return;
+            }
+            if (confirm("⚠️ ¿Deseas borrar TODOS los registros del día?")) {
+                db = [];
+                localStorage.setItem('qrRegistros', JSON.stringify(db));
+                updateTable();
+                showNotification('Historial completamente vaciado', 'error');
+            }
+        }
 
         // --- MANEJO DE EXCEL ---
         document.getElementById('excel-upload').addEventListener('change', function(e) {
@@ -437,11 +690,14 @@
         function updateTable() {
             const tbody = document.getElementById('scanned-list');
             tbody.innerHTML = ''; 
-            const reversedDb = [...db].reverse(); 
             
-            reversedDb.forEach(entry => {
+            for (let i = db.length - 1; i >= 0; i--) {
+                const entry = db[i];
                 const tr = document.createElement('tr');
                 const seccionMostrar = entry.seccion ? `<span class="tag-seccion">${entry.seccion}</span>` : "-";
+                
+                // La celda de la cruz de borrado hereda la clase admin-only y se rige por el estado actual
+                const displayDeleteCell = isAdminActive ? 'style="display: table-cell !important;"' : '';
 
                 tr.innerHTML = `
                     <td>${entry.hora}</td>
@@ -449,9 +705,10 @@
                     <td>${seccionMostrar}</td>
                     <td>${entry.horario || "-"}</td>
                     <td style="color:#666;">${entry.id}</td>
+                    <td class="admin-only" ${displayDeleteCell}><button class="btn-delete-row" onclick="deleteRecord(${i})" title="Eliminar Registro">❌</button></td>
                 `;
                 tbody.appendChild(tr);
-            });
+            }
         }
 
         // --- FUNCIÓN CENTRAL DE PROCESAMIENTO ---
@@ -459,22 +716,20 @@
             if (isProcessing) return; 
             
             isProcessing = true;
-            setTimeout(() => isProcessing = false, 1500); // Pausa para evitar lecturas dobles
+            setTimeout(() => isProcessing = false, 1500); 
 
             const now = new Date();
             const fechaActual = now.toLocaleDateString('es-CL'); 
             const horaActual = now.toLocaleTimeString('es-CL');
 
-            // Verificar si ya se registró hoy
             const yaRegistrado = db.find(reg => reg.id === decodedText && reg.fecha === fechaActual);
 
             if (yaRegistrado) {
                 playSound('error');
-                showNotification(`⚠️ Ya registrado: ${yaRegistrado.nombre}`, 'error');
+                showNotification(`⚠️ Ya registrado hoy: ${yaRegistrado.nombre}`, 'error');
                 return;
             }
 
-            // Buscar en la base de datos cargada
             const empleado = dbPersonal.find(p => String(p.ID || p.id || p.Id) === String(decodedText));
             
             const nuevoRegistro = {
@@ -502,7 +757,6 @@
         document.addEventListener("DOMContentLoaded", function() {
             updateTable();
 
-            // Configurar Escáner de Cámara
             let html5QrcodeScanner = new Html5QrcodeScanner(
                 "reader",
                 { fps: 15, qrbox: {width: 250, height: 250}, aspectRatio: 1.0 },
@@ -510,7 +764,6 @@
             html5QrcodeScanner.render(onScanSuccess, () => {});
         });
 
-        // Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js').catch(() => {});
