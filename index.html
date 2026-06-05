@@ -112,7 +112,7 @@
             box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
             border: 2px solid #333;
             overflow: hidden;
-            transition: box-shadow 0.3s ease;
+            transition: all 0.3s ease;
         }
 
         .scanner-wrapper::after {
@@ -148,36 +148,22 @@
             border-radius: 18px;
         }
 
-        #reader__dashboard_section_csr button {
-            background-color: var(--bg-deep);
-            color: var(--primary-glow);
-            border: 1px solid var(--primary-glow);
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-size: 0.8em;
-            margin: 10px auto;
-            display: block;
-        }
-        
-        #reader__status_span { color: var(--text-muted) !important; font-size: 0.8em;}
-        #reader img { opacity: 0.3; margin: 0 auto; }
-
-        .scanner-wrapper.success {
-            box-shadow: 0 0 50px rgba(0, 255, 136, 0.6);
-            border-color: var(--primary-glow);
+        /* Estilo para los botones generados por la librería del QR */
+        button[id*="html5-qrcode-button"] {
+            background-color: var(--bg-deep) !important;
+            color: var(--primary-glow) !important;
+            border: 1px solid var(--primary-glow) !important;
+            padding: 8px 15px !important;
+            border-radius: 5px !important;
+            cursor: pointer !important;
+            text-transform: uppercase !important;
+            font-size: 0.8em !important;
+            margin: 10px auto !important;
         }
 
-        .scanner-wrapper.error {
-            box-shadow: 0 0 50px rgba(255, 0, 85, 0.6);
-            border-color: var(--error-glow);
-        }
-
-        .scanner-wrapper.info {
-            box-shadow: 0 0 50px rgba(0, 191, 255, 0.6);
-            border-color: var(--info-glow);
-        }
+        .scanner-wrapper.success { box-shadow: 0 0 50px rgba(0, 255, 136, 0.6); border-color: var(--primary-glow); }
+        .scanner-wrapper.error { box-shadow: 0 0 50px rgba(255, 0, 85, 0.6); border-color: var(--error-glow); }
+        .scanner-wrapper.info { box-shadow: 0 0 50px rgba(0, 191, 255, 0.6); border-color: var(--info-glow); }
 
         #notification-container {
             position: fixed;
@@ -322,16 +308,43 @@
     </div>
 
     <script>
+        // --- CONFIGURACIÓN Y ESTADO ---
         let isProcessing = false;
         let db = JSON.parse(localStorage.getItem('qrRegistros')) || [];
         let dbPersonal = JSON.parse(localStorage.getItem('dbPersonal')) || [];
-
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
         if(dbPersonal.length > 0) {
             document.getElementById('btn-text').textContent = `BD Cargada (${dbPersonal.length} personas)`;
         }
 
+        // --- LÓGICA LECTOR EXTERNO (Pistola USB/Bluetooth) ---
+        let scanBuffer = '';
+        let lastKeyTime = Date.now();
+
+        document.addEventListener('keydown', function(e) {
+            const currentTime = Date.now();
+            
+            // Detectar si la escritura es rápida (Scanner) o lenta (Humano)
+            if (currentTime - lastKeyTime > 50) {
+                scanBuffer = '';
+            }
+            lastKeyTime = currentTime;
+
+            if (e.key === 'Enter') {
+                if (scanBuffer.length > 0) {
+                    e.preventDefault();
+                    onScanSuccess(scanBuffer); // Procesar el código capturado
+                    scanBuffer = ''; 
+                }
+            } else {
+                if (e.key.length === 1) {
+                    scanBuffer += e.key;
+                }
+            }
+        });
+
+        // --- MANEJO DE EXCEL ---
         document.getElementById('excel-upload').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -377,22 +390,20 @@
 
             const worksheet = XLSX.utils.json_to_sheet(dataToExport);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Asistencia_Historica");
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Asistencia");
 
             const fechaHoy = new Date().toISOString().slice(0, 10);
-            const nombreArchivo = `Reporte_Asistencia_${fechaHoy}.xlsx`;
-
-            XLSX.writeFile(workbook, nombreArchivo);
+            XLSX.writeFile(workbook, `Reporte_Asistencia_${fechaHoy}.xlsx`);
             showNotification('📊 Excel generado y descargado', 'success');
         }
 
+        // --- FEEDBACK Y UI ---
         function playSound(type) {
             if (audioCtx.state === 'suspended') { audioCtx.resume(); }
             const oscillator = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
-            gainNode.gain.value = 1; 
 
             if (type === 'success') {
                 oscillator.type = 'square';
@@ -420,109 +431,89 @@
             setTimeout(() => {
                 notif.style.display = 'none';
                 visualWrapper.classList.remove(type);
-            }, 3500);
+            }, 3000);
         }
 
         function updateTable() {
             const tbody = document.getElementById('scanned-list');
             tbody.innerHTML = ''; 
-            
             const reversedDb = [...db].reverse(); 
             
             reversedDb.forEach(entry => {
                 const tr = document.createElement('tr');
-                
-                const nombreMostrar = entry.nombre ? entry.nombre : "-";
                 const seccionMostrar = entry.seccion ? `<span class="tag-seccion">${entry.seccion}</span>` : "-";
-                const horarioMostrar = entry.horario ? entry.horario : "-";
 
                 tr.innerHTML = `
                     <td>${entry.hora}</td>
-                    <td><strong>${nombreMostrar}</strong></td>
+                    <td><strong>${entry.nombre || "-"}</strong></td>
                     <td>${seccionMostrar}</td>
-                    <td>${horarioMostrar}</td>
+                    <td>${entry.horario || "-"}</td>
                     <td style="color:#666;">${entry.id}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
+        // --- FUNCIÓN CENTRAL DE PROCESAMIENTO ---
         function onScanSuccess(decodedText) {
             if (isProcessing) return; 
             
             isProcessing = true;
-            setTimeout(() => isProcessing = false, 2000); 
+            setTimeout(() => isProcessing = false, 1500); // Pausa para evitar lecturas dobles
 
             const now = new Date();
             const fechaActual = now.toLocaleDateString('es-CL'); 
             const horaActual = now.toLocaleTimeString('es-CL');
 
-            const yaRegistrado = db.find(registro => registro.id === decodedText && registro.fecha === fechaActual);
+            // Verificar si ya se registró hoy
+            const yaRegistrado = db.find(reg => reg.id === decodedText && reg.fecha === fechaActual);
 
             if (yaRegistrado) {
                 playSound('error');
-                showNotification(`⚠️ Ya registrado hoy.`, 'error');
+                showNotification(`⚠️ Ya registrado: ${yaRegistrado.nombre}`, 'error');
                 return;
             }
 
-            playSound('success');
+            // Buscar en la base de datos cargada
+            const empleado = dbPersonal.find(p => String(p.ID || p.id || p.Id) === String(decodedText));
             
-            const empleado = dbPersonal.find(persona => String(persona.ID || persona.id || persona.Id) === String(decodedText));
-            
-            let nombrePersona = "Desconocido";
-            let seccionPersona = "Sin Sección";
-            let horarioPersona = "Sin Horario";
-
-            if (empleado) {
-                nombrePersona = empleado.NOMBRE || empleado.Nombre || empleado.nombre || "Sin Nombre";
-                seccionPersona = empleado.SECCION || empleado.Seccion || empleado.seccion || empleado.SECCIÓN || empleado.Sección || empleado.sección || "Sin Sección";
-                horarioPersona = empleado.HORARIO || empleado.Horario || empleado.horario || "Sin Horario";
-            }
-
             const nuevoRegistro = {
                 id: decodedText,
-                nombre: nombrePersona,
-                seccion: seccionPersona,
-                horario: horarioPersona,
+                nombre: empleado ? (empleado.NOMBRE || empleado.Nombre || empleado.nombre) : "Desconocido",
+                seccion: empleado ? (empleado.SECCION || empleado.Seccion || empleado.SECCIÓN || empleado.Sección) : "Sin Sección",
+                horario: empleado ? (empleado.HORARIO || empleado.Horario) : "Sin Horario",
                 fecha: fechaActual,
                 hora: horaActual
             };
 
             db.push(nuevoRegistro);
             localStorage.setItem('qrRegistros', JSON.stringify(db));
-
             updateTable();
+            playSound('success');
             
             if (empleado) {
-                showNotification(`✅ Ingreso: ${nombrePersona}`, 'success');
+                showNotification(`✅ Ingreso: ${nuevoRegistro.nombre}`, 'success');
             } else {
-                showNotification(`✅ QR Guardado (Sin datos en BD)`, 'info');
+                showNotification(`✅ ID Registrado: ${decodedText}`, 'info');
             }
         }
 
-        function onScanFailure(error) {}
-
+        // --- INICIALIZACIÓN ---
         document.addEventListener("DOMContentLoaded", function() {
             updateTable();
 
+            // Configurar Escáner de Cámara
             let html5QrcodeScanner = new Html5QrcodeScanner(
                 "reader",
-                { 
-                    fps: 15,
-                    qrbox: {width: 250, height: 250},
-                    aspectRatio: 1.0 
-                },
+                { fps: 15, qrbox: {width: 250, height: 250}, aspectRatio: 1.0 },
                 false);
-                
-            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+            html5QrcodeScanner.render(onScanSuccess, () => {});
         });
 
-        // REGISTRO DEL SERVICE WORKER PARA LA INSTALACIÓN
+        // Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('Service Worker activo', reg))
-                    .catch(err => console.error('Error con el Service Worker', err));
+                navigator.serviceWorker.register('sw.js').catch(() => {});
             });
         }
     </script>
