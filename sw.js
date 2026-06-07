@@ -1,4 +1,4 @@
-const CACHE_NAME = 'scanner-pro-v1';
+const CACHE_NAME = 'scanner-pro-v2';
 
 // Archivos críticos que se guardarán para uso offline inmediato
 // (Ahora utilizando rutas relativas para evitar errores de despliegue)
@@ -6,7 +6,7 @@ const ASSETS_TO_CACHE = [
   './',
   './index.html', 
   './html5-qrcode.min.js',
-  './xlsx.full.min.js',
+  './xlsx.style.min.js', // 👈 Cambiado aquí para cachear la librería con estilos
   './manifest.json',
   './icon-512.png' 
 ];
