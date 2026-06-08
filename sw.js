@@ -1,4 +1,4 @@
-const CACHE_NAME = 'scanner-pro-v9';
+const CACHE_NAME = 'scanner-pro-v10';
 
 // Archivos críticos que se guardarán para uso offline inmediato
 // (Ahora utilizando rutas relativas para evitar errores de despliegue)
