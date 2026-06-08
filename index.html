@@ -1036,176 +1036,176 @@
         });
 
         // Funciones auxiliares para enriquecer la Base de Datos
-function obtenerDiaSemana(dateStr) {
-    if (!dateStr) return "N/A";
-    const parts = dateStr.split('/');
-    if (parts.length === 3) {
-        // Formato esperado DD/MM/YYYY
-        const dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
-        const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-        return dias[dateObj.getDay()] || "N/A";
-    }
-    return "N/A";
-}
-
-function obtenerBloqueHorario(timeStr) {
-    if (!timeStr) return "N/A";
-    const hour = parseInt(timeStr.split(':')[0], 10);
-    if (isNaN(hour)) return "N/A";
-    
-    // Segmentación por rangos de 2 horas para detectar picos de ingresos/salidas
-    if (hour >= 0 && hour < 2)   return "00:00 - 01:59 (Madrugada)";
-    if (hour >= 2 && hour < 4)   return "02:00 - 03:59 (Madrugada)";
-    if (hour >= 4 && hour < 6)   return "04:00 - 05:59 (Apertura)";
-    if (hour >= 6 && hour < 8)   return "06:00 - 07:59 (Turno Mañana A)";
-    if (hour >= 8 && hour < 10)  return "08:00 - 09:59 (Turno Mañana B)";
-    if (hour >= 10 && hour < 12) return "10:00 - 11:59 (Almuerzo Temprano)";
-    if (hour >= 12 && hour < 14) return "12:00 - 13:59 (Almuerzo Tarde)";
-    if (hour >= 14 && hour < 16) return "14:00 - 15:59 (Turno Tarde A)";
-    if (hour >= 16 && hour < 18) return "16:00 - 17:59 (Turno Tarde B)";
-    if (hour >= 18 && hour < 20) return "18:00 - 19:59 (Salidas/Intermedio)";
-    if (hour >= 20 && hour < 22) return "20:00 - 21:59 (Turno Noche A)";
-    return "22:00 - 23:59 (Turno Noche B)";
-}
-
-function exportToExcel() {
-    const logs = JSON.parse(localStorage.getItem('attendance_logs')) || [];
-    
-    if (logs.length === 0) {
-        alert("No hay registros de asistencia para exportar hoy.");
-        return;
-    }
-
-    const wb = XLSX.utils.book_new();
-    const fechaActual = new Date().toLocaleDateString('es-CL');
-    
-    // 1. Encabezados de Columnas (Fila 1 directa para analítica limpia)
-    const dataMatrix = [[
-        "RUT / ID", 
-        "Nombre Colaborador", 
-        "Área / Cargo", 
-        "Acción / Estado",
-        "Fecha Completa", 
-        "Año", 
-        "Mes", 
-        "Día", 
-        "Día de la Semana", 
-        "Hora Completa", 
-        "Hora Numérica", 
-        "Rango Horario (Ingresos)"
-    ]];
-
-    // 2. Procesamiento e inyección de datos extendidos
-    logs.forEach(log => {
-        const f = log.date || fechaActual;
-        const h = log.time || '00:00';
-        
-        // Desglosar componentes de fecha
-        const fParts = f.split('/');
-        const dia = fParts[0] || '';
-        const mes = fParts[1] || '';
-        const anio = fParts[2] || '';
-        
-        // Extraer hora entera para analítica matemática directa
-        const horaEntera = parseInt(h.split(':')[0], 10) || 0;
-
-        dataMatrix.push([
-            log.rut || log.id || 'N/A',
-            log.name || 'Desconocido',
-            log.role || log.area || 'General',
-            log.status || 'Ingreso',
-            f,
-            parseInt(anio, 10) || '',
-            parseInt(mes, 10) || '',
-            parseInt(dia, 10) || '',
-            obtenerDiaSemana(f),
-            h,
-            horaEntera,
-            obtenerBloqueHorario(h)
-        ]);
-    });
-
-    const ws = XLSX.utils.aoa_to_sheet(dataMatrix);
-
-    // 3. ESTILOS CORPORATIVOS (xlsx.style)
-    // Cabecera única en Verde Casino Jumbo
-    const headerStyle = {
-        font: { name: 'Arial', size: 11, bold: true, color: { rgb: "FFFFFF" } },
-        fill: { fgColor: { rgb: "56D683" } }, 
-        alignment: { horizontal: "center", vertical: "center" },
-        border: { bottom: { style: "medium", color: { rgb: "000000" } } }
-    };
-
-    const columnas = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
-    columnas.forEach(col => {
-        const cellRef = `${col}1`;
-        if (ws[cellRef]) ws[cellRef].s = headerStyle;
-    });
-
-    // Filas de datos con Efecto Cebra e indexación limpia
-    for (let i = 1; i < dataMatrix.length; i++) {
-        const esPar = i % 2 === 0;
-        const colorFila = esPar ? "F9F9F9" : "FFFFFF";
-
-        columnas.forEach((col, idx) => {
-            const cellRef = col + (i + 1);
-            if (ws[cellRef]) {
-                ws[cellRef].s = {
-                    font: { name: 'Arial', size: 10, color: { rgb: "333333" } },
-                    fill: { fgColor: { rgb: colorFila } },
-                    alignment: { 
-                        horizontal: (idx === 1 || idx === 2) ? "left" : "center",
-                        vertical: "center" 
-                    },
-                    border: { bottom: { style: "thin", color: { rgb: "E5E5E5" } } }
-                };
+        function obtenerDiaSemana(dateStr) {
+            if (!dateStr) return "N/A";
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                // Formato esperado DD/MM/YYYY
+                const dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
+                const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+                return dias[dateObj.getDay()] || "N/A";
             }
-        });
-    }
-
-    // 4. Configurar anchos holgados para evitar campos ocultos
-    ws['!cols'] = [
-        { wch: 15 }, // RUT
-        { wch: 28 }, // Nombre
-        { wch: 22 }, // Área
-        { wch: 15 }, // Acción
-        { wch: 15 }, // Fecha
-        { wch: 8 },  // Año
-        { wch: 8 },  // Mes
-        { wch: 8 },  // Día
-        { wch: 15 }, // Día Semana
-        { wch: 14 }, // Hora Completa
-        { wch: 14 }, // Hora Numérica
-        { wch: 28 }  // Rango Horario
-    ];
-
-    ws['!rows'] = [{ hpt: 24 }]; // Altura para la fila de títulos
-
-    XLSX.utils.book_append_sheet(wb, ws, "BD_Analitica");
-
-    // 5. Descarga Segura
-    try {
-        const wbout = XLSX.write(wb, { bookType: 'xlsx', bookSST: false, type: 'binary' });
-        function s2ab(s) {
-            const buf = new ArrayBuffer(s.length);
-            const view = new Uint8Array(buf);
-            for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
-            return buf;
+            return "N/A";
         }
-        const blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `BD_Asistencia_Jumbo_${fechaActual.replace(/\//g, '-')}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    } catch (error) {
-        console.warn("Descargando versión de respaldo sin estilos:", error);
-        XLSX.writeFile(wb, `BD_Asistencia_Jumbo_${fechaActual.replace(/\//g, '-')}.xlsx`);
-    }
-}
-       
+
+        function obtenerBloqueHorario(timeStr) {
+            if (!timeStr) return "N/A";
+            const hour = parseInt(timeStr.split(':')[0], 10);
+            if (isNaN(hour)) return "N/A";
+
+            // Segmentación por rangos de 2 horas para detectar picos de ingresos/salidas
+            if (hour >= 0 && hour < 2) return "00:00 - 01:59 (Madrugada)";
+            if (hour >= 2 && hour < 4) return "02:00 - 03:59 (Madrugada)";
+            if (hour >= 4 && hour < 6) return "04:00 - 05:59 (Apertura)";
+            if (hour >= 6 && hour < 8) return "06:00 - 07:59 (Turno Mañana A)";
+            if (hour >= 8 && hour < 10) return "08:00 - 09:59 (Turno Mañana B)";
+            if (hour >= 10 && hour < 12) return "10:00 - 11:59 (Almuerzo Temprano)";
+            if (hour >= 12 && hour < 14) return "12:00 - 13:59 (Almuerzo Tarde)";
+            if (hour >= 14 && hour < 16) return "14:00 - 15:59 (Turno Tarde A)";
+            if (hour >= 16 && hour < 18) return "16:00 - 17:59 (Turno Tarde B)";
+            if (hour >= 18 && hour < 20) return "18:00 - 19:59 (Salidas/Intermedio)";
+            if (hour >= 20 && hour < 22) return "20:00 - 21:59 (Turno Noche A)";
+            return "22:00 - 23:59 (Turno Noche B)";
+        }
+
+        function exportToExcel() {
+            const logs = JSON.parse(localStorage.getItem('qrRegistros')) || [];
+
+            if (logs.length === 0) {
+                alert("No hay registros de asistencia para exportar hoy.");
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+            const fechaActual = new Date().toLocaleDateString('es-CL');
+
+            // 1. Encabezados de Columnas (Fila 1 directa para analítica limpia)
+            const dataMatrix = [[
+                "RUT / ID",
+                "Nombre Colaborador",
+                "Área / Cargo",
+                "Acción / Estado",
+                "Fecha Completa",
+                "Año",
+                "Mes",
+                "Día",
+                "Día de la Semana",
+                "Hora Completa",
+                "Hora Numérica",
+                "Rango Horario (Ingresos)"
+            ]];
+
+            // 2. Procesamiento e inyección de datos extendidos
+            logs.forEach(log => {
+                const f = log.date || fechaActual;
+                const h = log.time || '00:00';
+
+                // Desglosar componentes de fecha
+                const fParts = f.split('/');
+                const dia = fParts[0] || '';
+                const mes = fParts[1] || '';
+                const anio = fParts[2] || '';
+
+                // Extraer hora entera para analítica matemática directa
+                const horaEntera = parseInt(h.split(':')[0], 10) || 0;
+
+                dataMatrix.push([
+                    log.rut || log.id || 'N/A',
+                    log.name || 'Desconocido',
+                    log.role || log.area || 'General',
+                    log.status || 'Ingreso',
+                    f,
+                    parseInt(anio, 10) || '',
+                    parseInt(mes, 10) || '',
+                    parseInt(dia, 10) || '',
+                    obtenerDiaSemana(f),
+                    h,
+                    horaEntera,
+                    obtenerBloqueHorario(h)
+                ]);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(dataMatrix);
+
+            // 3. ESTILOS CORPORATIVOS (xlsx.style)
+            // Cabecera única en Verde Casino Jumbo
+            const headerStyle = {
+                font: { name: 'Arial', size: 11, bold: true, color: { rgb: "FFFFFF" } },
+                fill: { fgColor: { rgb: "56D683" } },
+                alignment: { horizontal: "center", vertical: "center" },
+                border: { bottom: { style: "medium", color: { rgb: "000000" } } }
+            };
+
+            const columnas = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+            columnas.forEach(col => {
+                const cellRef = `${col}1`;
+                if (ws[cellRef]) ws[cellRef].s = headerStyle;
+            });
+
+            // Filas de datos con Efecto Cebra e indexación limpia
+            for (let i = 1; i < dataMatrix.length; i++) {
+                const esPar = i % 2 === 0;
+                const colorFila = esPar ? "F9F9F9" : "FFFFFF";
+
+                columnas.forEach((col, idx) => {
+                    const cellRef = col + (i + 1);
+                    if (ws[cellRef]) {
+                        ws[cellRef].s = {
+                            font: { name: 'Arial', size: 10, color: { rgb: "333333" } },
+                            fill: { fgColor: { rgb: colorFila } },
+                            alignment: {
+                                horizontal: (idx === 1 || idx === 2) ? "left" : "center",
+                                vertical: "center"
+                            },
+                            border: { bottom: { style: "thin", color: { rgb: "E5E5E5" } } }
+                        };
+                    }
+                });
+            }
+
+            // 4. Configurar anchos holgados para evitar campos ocultos
+            ws['!cols'] = [
+                { wch: 15 }, // RUT
+                { wch: 28 }, // Nombre
+                { wch: 22 }, // Área
+                { wch: 15 }, // Acción
+                { wch: 15 }, // Fecha
+                { wch: 8 },  // Año
+                { wch: 8 },  // Mes
+                { wch: 8 },  // Día
+                { wch: 15 }, // Día Semana
+                { wch: 14 }, // Hora Completa
+                { wch: 14 }, // Hora Numérica
+                { wch: 28 }  // Rango Horario
+            ];
+
+            ws['!rows'] = [{ hpt: 24 }]; // Altura para la fila de títulos
+
+            XLSX.utils.book_append_sheet(wb, ws, "BD_Analitica");
+
+            // 5. Descarga Segura
+            try {
+                const wbout = XLSX.write(wb, { bookType: 'xlsx', bookSST: false, type: 'binary' });
+                function s2ab(s) {
+                    const buf = new ArrayBuffer(s.length);
+                    const view = new Uint8Array(buf);
+                    for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+                    return buf;
+                }
+                const blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `BD_Asistencia_Jumbo_${fechaActual.replace(/\//g, '-')}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            } catch (error) {
+                console.warn("Descargando versión de respaldo sin estilos:", error);
+                XLSX.writeFile(wb, `BD_Asistencia_Jumbo_${fechaActual.replace(/\//g, '-')}.xlsx`);
+            }
+        }
+
         // --- FEEDBACK Y UI ---
         function playSound(type) {
             if (audioCtx.state === 'suspended') { audioCtx.resume(); }
