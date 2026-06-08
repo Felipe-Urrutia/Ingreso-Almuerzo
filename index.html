@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Scanner Pro - Control Asistencia</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e1e1e">
-    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="icon-512.png">
+    <link rel="icon" type="image/png" href="icon-512.png">
     <!--
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -494,8 +495,8 @@ tr:last-child td { border-bottom: none; }
 <body>
 
     <header>
-        <h2>Scanner Pro</h2>
-        <div class="subtitle">Aprendiendo y registrando cada día</div>
+        <h2>Registro Ingreso Casino</h2>
+        <div class="subtitle">Bienvenido al Casino J770</div>
         
         <button id="admin-btn" class="admin-toggle-btn" onclick="toggleAdminMode()">
             <span id="lock-icon">🔒</span> <span id="lock-text">Modo Kiosco</span>
@@ -545,8 +546,33 @@ tr:last-child td { border-bottom: none; }
     <div id="notification-container">
         <div id="notification" class="toast"></div>
     </div>
+    
+<!-- MODAL PARA PEDIR PIN (REEMPLAZA AL PROMPT) -->
+<div id="prompt-modal" class="modal-overlay">
+     <div class="modal-box">
+        <h3 style="margin: 0 0 5px 0; color: var(--text-main); font-size: 1.1em; text-transform: uppercase;">Acceso Administrador</h3>
+        <p style="margin: 0; font-size: 0.85em; color: var(--text-muted);">Introduce el PIN de seguridad:</p>
+        <input type="password" id="pin-input" maxlength="6" autofocus autocomplete="off">
+        <div class="modal-buttons">
+            <button class="btn-modal-cancel" onclick="closePinModal()">Cancelar</button>
+            <button class="btn-download" onclick="submitPin()">Ingresar</button>
+        </div>
+    </div>
+</div>
 
-    <script>
+<!-- MODAL PARA CONFIRMACIONES (REEMPLAZA AL CONFIRM) -->
+<div id="confirm-modal" class="modal-overlay">
+    <div class="modal-box" style="border-top-color: var(--error-color);">
+        <h3 style="margin: 0 0 10px 0; color: var(--text-main); font-size: 1.1em; text-transform: uppercase;">¿Confirmar Acción?</h3>
+        <p id="confirm-message" style="margin: 0 0 20px 0; font-size: 0.9em; color: var(--text-muted); line-height: 1.4;"></p>
+        <div class="modal-buttons">
+            <button class="btn-modal-cancel" onclick="closeConfirmModal()">Cancelar</button>
+            <button class="btn-clear-all" id="btn-confirm-execute" style="background: var(--error-color); color: white; border: none;">Proceder</button>
+        </div>
+    </div> 
+</div>
+
+   <script>
         // --- CONFIGURACIÓN DE SEGURIDAD ---
         const MASTER_PIN = "3805"; // 🔑 CAMBIA AQUÍ TU CONTRASEÑA/PIN DE ADMINISTRADOR
         let isAdminActive = false;
@@ -1025,32 +1051,39 @@ function clasificarHoraJumbo(horaStr) {
                 .catch(err => console.log('Error al registrar SW:', err));
             });
         }
-    </script>
-    
-<!-- MODAL PARA PEDIR PIN (REEMPLAZA AL PROMPT) -->
-<div id="prompt-modal" class="modal-overlay">
-    <div class="modal-box">
-        <h3 style="margin: 0 0 5px 0; color: var(--text-main); font-size: 1.1em; text-transform: uppercase;">Acceso Administrador</h3>
-        <p style="margin: 0; font-size: 0.85em; color: var(--text-muted);">Introduce el PIN de seguridad:</p>
-        <input type="password" id="pin-input" maxlength="6" autofocus autocomplete="off">
-        <div class="modal-buttons">
-            <button class="btn-modal-cancel" onclick="closePinModal()">Cancelar</button>
-            <button class="btn-download" onclick="submitPin()">Ingresar</button>
-        </div>
-    </div>
-</div>
+document.addEventListener('DOMContentLoaded', () => {
+            // Listener seguro para el botón de confirmar borrados
+            const btnExecute = document.getElementById('btn-confirm-execute');
+            if (btnExecute) {
+                btnExecute.addEventListener('click', () => {
+                    const action = confirmActionType;
+                    const index = targetDeleteIndex;
+                    closeConfirmModal();
 
-<!-- MODAL PARA CONFIRMACIONES (REEMPLAZA AL CONFIRM) -->
-<div id="confirm-modal" class="modal-overlay">
-    <div class="modal-box" style="border-top-color: var(--error-color);">
-        <h3 style="margin: 0 0 10px 0; color: var(--text-main); font-size: 1.1em; text-transform: uppercase;">¿Confirmar Acción?</h3>
-        <p id="confirm-message" style="margin: 0 0 20px 0; font-size: 0.9em; color: var(--text-muted); line-height: 1.4;"></p>
-        <div class="modal-buttons">
-            <button class="btn-modal-cancel" onclick="closeConfirmModal()">Cancelar</button>
-            <button class="btn-clear-all" id="btn-confirm-execute" style="background: var(--error-color); color: white; border: none;">Proceder</button>
-        </div>
-    </div>
-</div>
+                    if (action === 'delete' && index !== null) {
+                        db.splice(index, 1);
+                        localStorage.setItem('qrRegistros', JSON.stringify(db));
+                        updateTable();
+                        showNotification('Registro eliminado con éxito', 'info');
+                    } else if (action === 'clearAll') {
+                        db = [];
+                        localStorage.setItem('qrRegistros', JSON.stringify(db));
+                        updateTable();
+                        showNotification('Historial completamente vaciado', 'error');
+                    }
+                });
+            }
+
+            // Listener seguro para el Enter en el casillero del PIN
+            const pinInput = document.getElementById('pin-input');
+            if (pinInput) {
+                pinInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') submitPin();
+                });
+            }
+        });
+
+    </script>
 
 </body>
 </html>
