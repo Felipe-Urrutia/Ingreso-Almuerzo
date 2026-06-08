@@ -74,11 +74,18 @@ h2 {
     text-transform: uppercase;
     letter-spacing: 1px;
     color: var(--text-main);
+    display: flex;           /* Alinea la imagen y el texto en la misma línea */
+    align-items: center;     /* Centra verticalmente */
+    justify-content: center; /* Centra horizontalmente */
+    gap: 12px;               /* Da un espacio para que Aurora no toque el texto */
 }
 
-h2::after {
-    content: ' 🐘'; /* Un guiño sutil al ícono de la marca */
-    font-size: 0.9em;
+/* Puedes borrar la regla h2::after { content: ' 🐘'; } si prefieres que Aurora sea la única protagonista, o dejarla si quieres mantener el elefante al final */
+
+.logo-aurora {
+    height: 50px; /* Controla el tamaño de Aurora. Puedes subir o bajar este valor */
+    width: auto;
+    filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.5)); /* Le da un efecto de sombra para que resalte del fondo oscuro */
 }
 
 .subtitle {
@@ -495,11 +502,16 @@ tr:last-child td { border-bottom: none; }
 <body>
 
     <header>
-        <h2>Registro Ingreso Casino</h2>
-        <div class="subtitle">Bienvenido al Casino J770</div>
+        <h2>
+
+            <img src="./Aurora.png" alt="Aurora Bienvenida" class="logo-aurora">
+            Casino Jumbo J770
+        
+        </h2>
+        <div class="subtitle">¡Bienvenido!</div>
         
         <button id="admin-btn" class="admin-toggle-btn" onclick="toggleAdminMode()">
-            <span id="lock-icon">🔒</span> <span id="lock-text">Modo Kiosco</span>
+            <span id="lock-icon">🔒</span> <span id="lock-text">Modo Administrador</span>
         </button>
 
         <label for="excel-upload" class="custom-file-upload admin-only">
