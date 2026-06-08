@@ -8,9 +8,9 @@
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e1e1e">
-    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="icon-512.png">
+    <link rel="icon" type="image/png" href="icon-512.png">
     <!--
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -74,11 +74,18 @@ h2 {
     text-transform: uppercase;
     letter-spacing: 1px;
     color: var(--text-main);
+    display: flex;           /* Alinea la imagen y el texto en la misma línea */
+    align-items: center;     /* Centra verticalmente */
+    justify-content: center; /* Centra horizontalmente */
+    gap: 12px;               /* Da un espacio para que Aurora no toque el texto */
 }
 
-h2::after {
-    content: ' 🐘'; /* Un guiño sutil al ícono de la marca */
-    font-size: 0.9em;
+/* Puedes borrar la regla h2::after { content: ' 🐘'; } si prefieres que Aurora sea la única protagonista, o dejarla si quieres mantener el elefante al final */
+
+.logo-aurora {
+    height: 50px; /* Controla el tamaño de Aurora. Puedes subir o bajar este valor */
+    width: auto;
+    filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.5)); /* Le da un efecto de sombra para que resalte del fondo oscuro */
 }
 
 .subtitle {
@@ -495,11 +502,16 @@ tr:last-child td { border-bottom: none; }
 <body>
 
     <header>
-        <h2>Registro Ingreso Casino</h2>
-        <div class="subtitle">Bienvenido al Casino J770</div>
+        <h2>
+
+            <img src="./Aurora.png" alt="Aurora Bienvenida" class="logo-aurora">
+            Casino Jumbo J770
+        
+        </h2>
+        <div class="subtitle">¡Bienvenido!</div>
         
         <button id="admin-btn" class="admin-toggle-btn" onclick="toggleAdminMode()">
-            <span id="lock-icon">🔒</span> <span id="lock-text">Modo Kiosco</span>
+            <span id="lock-icon">🔒</span> <span id="lock-text">Modo Administrador</span>
         </button>
 
         <label for="excel-upload" class="custom-file-upload admin-only">
@@ -549,7 +561,7 @@ tr:last-child td { border-bottom: none; }
     
 <!-- MODAL PARA PEDIR PIN (REEMPLAZA AL PROMPT) -->
 <div id="prompt-modal" class="modal-overlay">
-    <!-- <div class="modal-box">
+     <div class="modal-box">
         <h3 style="margin: 0 0 5px 0; color: var(--text-main); font-size: 1.1em; text-transform: uppercase;">Acceso Administrador</h3>
         <p style="margin: 0; font-size: 0.85em; color: var(--text-muted);">Introduce el PIN de seguridad:</p>
         <input type="password" id="pin-input" maxlength="6" autofocus autocomplete="off">
@@ -557,19 +569,19 @@ tr:last-child td { border-bottom: none; }
             <button class="btn-modal-cancel" onclick="closePinModal()">Cancelar</button>
             <button class="btn-download" onclick="submitPin()">Ingresar</button>
         </div>
-    </div>-->
+    </div>
 </div>
 
 <!-- MODAL PARA CONFIRMACIONES (REEMPLAZA AL CONFIRM) -->
 <div id="confirm-modal" class="modal-overlay">
-    <!-- <div class="modal-box" style="border-top-color: var(--error-color);">
+    <div class="modal-box" style="border-top-color: var(--error-color);">
         <h3 style="margin: 0 0 10px 0; color: var(--text-main); font-size: 1.1em; text-transform: uppercase;">¿Confirmar Acción?</h3>
         <p id="confirm-message" style="margin: 0 0 20px 0; font-size: 0.9em; color: var(--text-muted); line-height: 1.4;"></p>
         <div class="modal-buttons">
             <button class="btn-modal-cancel" onclick="closeConfirmModal()">Cancelar</button>
             <button class="btn-clear-all" id="btn-confirm-execute" style="background: var(--error-color); color: white; border: none;">Proceder</button>
         </div>
-    </div> -->
+    </div> 
 </div>
 
    <script>
