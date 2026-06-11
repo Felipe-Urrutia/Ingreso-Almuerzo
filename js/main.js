@@ -124,10 +124,11 @@ function updateTable() {
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    if (db.length === 0) {
+    // Si la base de datos local está vacía, mostramos el mensaje de espera limpio
+    if (!db || db.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="${isAdminActive ? 6 : 5}" style="text-align: center; color: #94a3b8; padding: 30px;">
+                <td colspan="${isAdminActive ? 6 : 5}" style="text-align: center; color: #94a3b8; padding: 30px; font-size: 0.95rem;">
                     📸 Esperando escaneo de códigos QR...
                 </td>
             </tr>
@@ -135,19 +136,27 @@ function updateTable() {
         return;
     }
 
-    // Recorremos el arreglo de forma invertida para mostrar el ÚLTIMO arriba en la pantalla
+    // Recorremos el arreglo al revés para que el último en marcar aparezca arriba
     for (let i = db.length - 1; i >= 0; i--) {
         const entry = db[i];
         const tr = document.createElement('tr');
 
-        // 🔄 SINCRONIZACIÓN DE PROPIEDADES CON EXCEL Y SCANNER RÁPIDO:
-        // entry.hora, entry.nombre, entry.seccion, entry.horario y entry.rut (antes entry.id)
+        // 🛡️ BLINDAJE ABSOLUTO DE PROPIEDADES (Mapeo cruzado anti-fallos)
+        const horaMarcaje = entry.hora || entry.HORA || '';
+        const nombreTrabajador = entry.nombre || entry.NOMBRE || 'Desconocido';
+        const rutTrabajador = entry.rut || entry.RUT || entry.id || entry.ID || '';
+        const horarioTrabajador = entry.horario || entry.HORARIO || 'Sin Horario';
+
+        // Validamos todas las variaciones posibles de la palabra "Sección"
+        const seccionTrabajador = entry.seccion || entry.SECCION || entry.sección || entry.SECCIÓN || entry.area || entry.Area || 'General';
+
+        // Inyectamos la fila limpia en la tabla de la tablet
         tr.innerHTML = `
-            <td style="font-family: monospace; font-size: 0.95rem;">${entry.hora || ''}</td>
-            <td><strong>${entry.nombre || 'Desconocido'}</strong></td>
-            <td><span class="tag-seccion" style="background-color: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: 600;">${entry.seccion || 'General'}</span></td>
-            <td>${entry.horario || 'Sin Horario'}</td>
-            <td style="font-weight: 600; color: #1e293b;">${entry.rut || entry.id || ''}</td>
+            <td style="font-family: monospace; font-size: 0.95rem; color: #475569;">${horaMarcaje}</td>
+            <td><strong style="color: #1e293b;">${nombreTrabajador}</strong></td>
+            <td><span class="tag-seccion" style="background-color: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: 600;">${seccionTrabajador}</span></td>
+            <td style="color: #64748b;">${horarioTrabajador}</td>
+            <td style="font-weight: 600; color: #0f172a;">${rutTrabajador}</td>
             <td class="admin-only" style="display: ${isAdminActive ? 'table-cell' : 'none'} !important; text-align: center;">
                 <button onclick="deleteRecord(${i})" style="background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 4px;">❌</button>
             </td>
