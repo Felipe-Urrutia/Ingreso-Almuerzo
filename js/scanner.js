@@ -56,8 +56,7 @@ function onScanSuccess(decodedText) {
     // 🕒 Formateadores de fecha y hora bajo el estándar estricto de Chile
     const now = new Date();
     const fechaActual = now.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    const horaActual = now.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
+    const horaActual = now.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
     // 🛡️ VALIDACIÓN EN BASE DE DATOS LOCAL: ¿Ya almorzó o registró hoy este RUT?
     const yaRegistradoHoy = db.find(reg => normalizarID(reg.rut) === rutNormalizadoScan && reg.fecha === fechaActual);
 
