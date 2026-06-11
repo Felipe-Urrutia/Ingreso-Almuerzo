@@ -434,7 +434,8 @@ tr:nth-child(even) {
     body {
         padding: 10px;
         display: grid;
-        grid-template-columns: 1fr 1.3fr; /* Escáner Izquierda - Tabla Derecha */
+        grid-template-columns: 1fr 1.3fr;
+        /* Escáner Izquierda - Tabla Derecha */
         grid-template-rows: auto 1fr;
         gap: 15px;
         max-width: 100vw;
@@ -461,7 +462,8 @@ tr:nth-child(even) {
     }
 
     .main-content-layout {
-        display: contents; /* Desactiva el flujo normal para heredar las celdas del body grid */
+        display: contents;
+        /* Desactiva el flujo normal para heredar las celdas del body grid */
     }
 
     .wrapper {
@@ -484,4 +486,127 @@ tr:nth-child(even) {
         overflow-y: auto;
         margin-top: 0;
     }
+}
+
+/* ==========================================================================
+   🎴 SISTEMA DE TARJETAS BIEN RESPONSIVAS (MÓDULOS DE ASISTENCIA JUMBO)
+   ========================================================================== */
+
+/* Contenedor principal que aloja todas las tarjetas */
+.contenedor-tarjetas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    /* Auto-acomodo mágico */
+    gap: 15px;
+    padding: 10px 0;
+    max-height: calc(100vh - 120px);
+    /* Evita que se desborde la pantalla */
+    overflow-y: auto;
+}
+
+/* Tarjeta individual */
+.tarjeta-registro {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    padding: 14px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.tarjeta-registro:hover {
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+    /* Pequeño efecto visual táctil */
+}
+
+/* Encabezado de la tarjeta (Hora y Sección) */
+.tarjeta-encabezado {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    border-bottom: 1px dashed #f1f5f9;
+    padding-bottom: 8px;
+}
+
+.tarjeta-hora {
+    font-family: monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #475569;
+}
+
+.tarjeta-badge {
+    background-color: #e0f2fe;
+    color: #0369a1;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Cuerpo de la tarjeta (Datos del operario) */
+.tarjeta-nombre {
+    font-size: 1.05rem;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+    font-weight: 700;
+}
+
+.tarjeta-detalles p {
+    margin: 4px 0;
+    font-size: 0.88rem;
+    color: #64748b;
+}
+
+.tarjeta-detalles strong {
+    color: #334155;
+}
+
+/* Sección de herramientas de Supervisor */
+.tarjeta-acciones {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid #fee2e2;
+    justify-content: flex-end;
+}
+
+.btn-eliminar-tarjeta {
+    background-color: #fef2f2;
+    color: #ef4444;
+    border: 1px solid #fee2e2;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    transition: background 0.2s;
+}
+
+.btn-eliminar-tarjeta:hover {
+    background-color: #fee2e2;
+}
+
+/* Estado de espera sin registros */
+.tarjeta-vacia {
+    grid-column: 1 / -1;
+    /* Ocupa todo el ancho disponible */
+    text-align: center;
+    color: #94a3b8;
+    padding: 40px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #f8fafc;
+    font-size: 0.95rem;
 }
