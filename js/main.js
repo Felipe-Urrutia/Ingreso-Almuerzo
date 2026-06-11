@@ -1,65 +1,41 @@
-// Estado de la App compartido entre archivos
+// ==========================================================================
+// CENTRAL DE INTELIGENCIA: js/main.js (Cerebro de la PWA)
+// Versión: Corporativa Modular - Optimizado para Flujo Extremo
+// ==========================================================================
+
+// --- 📦 1. ESTADO GLOBAL DE LA APLICACIÓN ---
 let db = JSON.parse(localStorage.getItem('qrRegistros')) || [];
-let dbPersonal = JSON.parse(localStorage.getItem('dbPersonal')) || [];
-let isProcessing = false;
+// Blindaje: Buscamos dbPersonal o planillaPersonal en el almacenamiento de la tablet
+let dbPersonal = JSON.parse(localStorage.getItem('dbPersonal')) || JSON.parse(localStorage.getItem('planillaPersonal')) || [];
+
 let isAdminActive = false;
-
-const PIN_CORRECTO = "3805"; // 🔒 Tu contraseña
-
 let clickCount = 0;
 let clickTimeout;
 
+const PIN_CORRECTO = "3805"; // 🔒 Tu contraseña real se mantiene intacta
 
-let audioCtx = null;
-function playSound(type) {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    // ... (Tu lógica de generación de osciladores para success/error)
-}
-
-function showNotification(message, type) {
-    const notif = document.getElementById('notification');
-    if (!notif) return;
-    notif.textContent = message;
-    notif.className = `toast ${type}`;
-    notif.style.display = 'block';
-    setTimeout(() => { notif.style.display = 'none'; }, 3000);
-}
-
-function updateTable() {
-    const tbody = document.getElementById('scanned-list');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-
-    for (let i = db.length - 1; i >= 0; i--) {
-        const entry = db[i];
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${entry.hora}</td>
-            <td><strong>${entry.nombre}</strong></td>
-            <td>${entry.seccion}</td>
-            <td>${entry.horario}</td>
-            <td>${entry.id}</td>
-            <td class="admin-only"><button onclick="deleteRecord(${i})">❌</button></td>
-        `;
-        tbody.appendChild(tr);
-    }
-}
-
-// Inicializar la app al cargar la página
+// --- 🚀 2. INICIALIZADOR DE LA APP (DOM Ready) ---
 document.addEventListener("DOMContentLoaded", function () {
+    // Dibujar la tabla inicialmente con los datos persistidos
     updateTable();
 
+    // Encender la cámara conectándola a la configuración rápida de scanner.js
     if (document.getElementById("reader")) {
-        let html5QrcodeScanner = new Html5QrcodeScanner(
-            "reader", { fps: 15, qrbox: 250, aspectRatio: 1.0 }, false
-        );
-        html5QrcodeScanner.render(onScanSuccess, () => { });
+        try {
+            // Si por alguna razón configEscanerRapido no cargó, usamos un fallback optimizado
+            const opcionesCamara = typeof configEscanerRapido !== 'undefined' ? configEscanerRapido : { fps: 25, qrbox: 250, aspectRatio: 1.0 };
+
+            let html5QrcodeScanner = new Html5QrcodeScanner(
+                "reader", opcionesCamara, false
+            );
+            html5QrcodeScanner.render(onScanSuccess, () => { });
+        } catch (error) {
+            console.error("Error al iniciar el motor de la cámara:", error);
+        }
     }
 });
 
-// ==========================================
-// MECANISMO OCULTO (MODAL PROGRAMADO)
-// ==========================================
+// --- 👁️ 3. LÓGICA DEL LOGO SECRETO (Huevo de Pascua Aurora) ---
 function clickSecretoAdmin() {
     if (isAdminActive) {
         cerrarModoAdmin();
@@ -85,8 +61,8 @@ function abrirModalSecreto() {
     if (!modal || !pinInput) return;
 
     pinInput.value = ""; // Limpia intentos anteriores
-    modal.style.display = "flex"; // Lo muestra en pantalla
-    pinInput.focus(); // Enfoca automáticamente el input para escribir directo
+    modal.style.display = "flex"; // Lo muestra en pantalla con desenfoque
+    pinInput.focus(); // Enfoca automáticamente el input para escribir directo en móviles
 }
 
 function cerrarModalSecreto() {
@@ -109,18 +85,24 @@ function verificarPinModal() {
     }
 }
 
-// Permitir presionar "Enter" en el teclado físico/virtual para ingresar
+// Permitir presionar "Enter" en el teclado físico/virtual para ingresar rápido
 document.getElementById('modal-pin')?.addEventListener('keypress', function (e) {
     if (e.key === 'Enter') {
         verificarPinModal();
     }
 });
 
+// --- ⚙️ 4. CONTROL DEL MODO ADMINISTRADOR ---
 function activarModoAdmin() {
     isAdminActive = true;
     const adminElements = document.querySelectorAll('.admin-only');
     adminElements.forEach(el => {
-        el.style.setProperty('display', 'block', 'important');
+        // Corrección: Forzamos la visualización en cascada de celdas de tablas si corresponde
+        if (el.tagName === 'TD' || el.tagName === 'TH') {
+            el.style.setProperty('display', 'table-cell', 'important');
+        } else {
+            el.style.setProperty('display', 'block', 'important');
+        }
     });
     showNotification('🔓 Acceso Autorizado', 'success');
     updateTable();
@@ -136,19 +118,65 @@ function cerrarModoAdmin() {
     updateTable();
 }
 
-// ==========================================
-// ACCIÓN ADMINISTRATIVA: VACIAR HISTORIAL (MODAL PRO)
-// ==========================================
+// --- 🎨 5. RENDERIZADO DINÁMICO DE LA INTERFAZ (Tabla de Marcajes) ---
+function updateTable() {
+    const tbody = document.getElementById('scanned-list');
+    if (!tbody) return;
+    tbody.innerHTML = '';
 
-// 1. El botón de la interfaz llama a esta función para abrir el cartel
-function clearAllRecords() {
-    const confirmModal = document.getElementById('custom-confirm-modal');
-    if (confirmModal) {
-        confirmModal.style.display = "flex"; // Levanta el modal visual elegante
+    if (db.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="${isAdminActive ? 6 : 5}" style="text-align: center; color: #94a3b8; padding: 30px;">
+                    📸 Esperando escaneo de códigos QR...
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    // Recorremos el arreglo de forma invertida para mostrar el ÚLTIMO arriba en la pantalla
+    for (let i = db.length - 1; i >= 0; i--) {
+        const entry = db[i];
+        const tr = document.createElement('tr');
+
+        // 🔄 SINCRONIZACIÓN DE PROPIEDADES CON EXCEL Y SCANNER RÁPIDO:
+        // entry.hora, entry.nombre, entry.seccion, entry.horario y entry.rut (antes entry.id)
+        tr.innerHTML = `
+            <td style="font-family: monospace; font-size: 0.95rem;">${entry.hora || ''}</td>
+            <td><strong>${entry.nombre || 'Desconocido'}</strong></td>
+            <td><span class="tag-seccion" style="background-color: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: 600;">${entry.seccion || 'General'}</span></td>
+            <td>${entry.horario || 'Sin Horario'}</td>
+            <td style="font-weight: 600; color: #1e293b;">${entry.rut || entry.id || ''}</td>
+            <td class="admin-only" style="display: ${isAdminActive ? 'table-cell' : 'none'} !important; text-align: center;">
+                <button onclick="deleteRecord(${i})" style="background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 4px;">❌</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
     }
 }
 
-// 2. Función para cerrar el cartel si se arrepiente
+// Acción administrativa: Borrar un marcaje específico de la tabla
+function deleteRecord(index) {
+    if (index > -1 && index < db.length) {
+        const nombreEliminado = db[index].nombre;
+        db.splice(index, 1); // Lo removemos del arreglo global
+        localStorage.setItem('qrRegistros', JSON.stringify(db)); // Sincronizamos localmente
+        updateTable(); // Refrescamos vista
+        showNotification(`🗑️ Eliminado marcaje de: ${nombreEliminado}`, 'info');
+    }
+}
+
+// ==========================================
+// ACCIÓN ADMINISTRATIVA: VACIAR HISTORIAL (MODAL PRO)
+// ==========================================
+function clearAllRecords() {
+    const confirmModal = document.getElementById('custom-confirm-modal');
+    if (confirmModal) {
+        confirmModal.style.display = "flex";
+    }
+}
+
 function cerrarConfirmModal() {
     const confirmModal = document.getElementById('custom-confirm-modal');
     if (confirmModal) {
@@ -156,21 +184,63 @@ function cerrarConfirmModal() {
     }
 }
 
-// 3. La acción real que se ejecuta SOLO si presiona el botón rojo "Sí, Borrar Todo"
 function ejecutarVaciadoReal() {
-    // Limpiamos los datos del sistema
     db = [];
     localStorage.setItem('qrRegistros', JSON.stringify(db));
-
-    // Cerramos el modal de advertencia
     cerrarConfirmModal();
-
-    // Refrescamos la tabla para que se vea vacía
     updateTable();
-
-    // Avisamos con tu propia notificación estilizada de la PWA
     showNotification('⚠️ Historial del día vaciado por completo', 'error');
-
-    // Cerramos el panel administrativo por seguridad
     cerrarModoAdmin();
+}
+
+// --- 🔊 6. AUDIO INTEGRADO POR HARDWARE (Pitidos Nativos con Desbloqueo Táctil) ---
+let audioCtx = null;
+
+// Esta función inicializa y activa el motor de audio de forma segura
+function asegurarAudioContext() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    // Si el motor está dormido por restricciones del navegador, lo despertamos de golpe
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    return audioCtx;
+}
+
+// 📱 ESCUCHADORES TÁCTILES: Apenas el usuario toque CUALQUIER parte de la pantalla,
+// el navegador autorizará los sonidos y el escáner podrá pitar libremente en ráfaga.
+['click', 'touchstart', 'touchend'].forEach(evento => {
+    document.addEventListener(evento, () => {
+        asegurarAudioContext();
+    }, { once: true }); // 'once: true' hace que se ejecute solo la primera vez y no gaste recursos
+});
+
+function playSound(type) {
+    try {
+        // Activamos/Verificamos el estado del motor antes de reproducir
+        const ctx = asegurarAudioContext();
+
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
+        if (type === 'success') {
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, ctx.currentTime); // Pitido agudo limpio
+            gainNode.gain.setValueAtTime(0.12, ctx.currentTime);       // Subimos un pelo el volumen
+            oscillator.start();
+            oscillator.stop(ctx.currentTime + 0.12);                  // 120 milisegundos de duración
+        } else if (type === 'error') {
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(180, ctx.currentTime); // Zumbido grave raspado de alerta
+            gainNode.gain.setValueAtTime(0.18, ctx.currentTime);       // Volumen más fuerte para errores
+            oscillator.start();
+            oscillator.stop(ctx.currentTime + 0.3);                   // 300 milisegundos de duración
+        }
+    } catch (e) {
+        console.warn("El sistema de audio nativo no pudo reproducir el tono en este fotograma:", e);
+    }
 }
