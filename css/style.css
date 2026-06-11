@@ -25,6 +25,9 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* ==========================================================================
+   CONFIGURACIÓN BASE RESPONSIVA
+   ========================================================================== */
 body {
     background-color: var(--bg-principal);
     color: var(--texto-oscuro);
@@ -32,76 +35,62 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
+    /* Cambiamos padding fijo por uno adaptativo y evitamos desbordamiento horizontal */
+    padding: 16px;
+    width: 100%;
+    overflow-x: hidden;
 }
 
-/* ==========================================================================
-   CABECERA Y LOGO (Aurora.png desde CSS)
-   ========================================================================== */
 header {
     text-align: center;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     width: 100%;
-    max-width: 600px;
+    max-width: 500px;
 }
 
-/* ⚠️ AQUÍ ESTÁ TU IMAGEN: Aparece como logo centralizado arriba del título */
+/* Reducimos un poco el tamaño máximo del logo en móviles pequeños */
 .logo-jumbo {
-    width: 130px;
-    height: 130px;
-    margin: 0 auto 15px auto;
+    width: 110px;
+    height: 110px;
+    margin: 0 auto 10px auto;
     background-image: url('../img/Aurora.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
     cursor: pointer;
-    /* Muestra la manito al pasar el mouse en PC */
     user-select: none;
-    /* Evita efectos raros de selección al presionar rápido */
     -webkit-user-select: none;
-    /* Compatibilidad para navegadores de tablets/móviles */
 }
 
-header h1 {
-    font-size: 1.8rem;
-    color: var(--texto-oscuro);
-    font-weight: 700;
-    letter-spacing: -0.5px;
-}
-
-/* ==========================================================================
-   CONTENEDOR DEL ESCÁNER (Cámara y Notificaciones)
-   ========================================================================== */
-.wrapper {
+.wrapper,
+.admin-section,
+.table-container {
     width: 100%;
-    max-width: 500px;
+    /* 👈 Clave: Ocupa el 100% del ancho disponible... */
+    max-width: 480px;
+    /* 👈 ...pero nunca se estira más allá de 480px */
     background: var(--bg-tarjeta);
     border-radius: 16px;
-    padding: 15px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    /* Sombra suave */
+    padding: 16px;
     border: 1px solid var(--borde);
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    margin-bottom: 16px;
+    /* Separación uniforme entre bloques */
 }
 
-/* Bordes de color según éxito o error de lectura */
-.wrapper.success {
-    border-color: var(--verde-jumbo);
-    box-shadow: 0 0 15px rgba(86, 214, 131, 0.3);
-}
-
-.wrapper.error {
-    border-color: var(--rojo-alerta);
-    box-shadow: 0 0 15px rgba(231, 76, 60, 0.3);
-}
-
+/* Asegurar que la cámara se adapte internamente sin romper el contenedor */
 #reader {
     width: 100% !important;
     border: none !important;
     border-radius: 12px;
     overflow: hidden;
+}
+
+#reader video {
+    width: 100% !important;
+    height: auto !important;
+    object-fit: cover;
+    border-radius: 12px;
 }
 
 /* Alertas flotantes (Toasts) */
@@ -223,38 +212,29 @@ header h1 {
 }
 
 /* ==========================================================================
-   TABLA DE REGISTROS (Estilo Limpio)
+   TABLA TOTALMENTE RESPONSIVA (Evita scroll horizontal destructivo)
    ========================================================================== */
 .table-container {
-    width: 100%;
-    max-width: 600px;
-    margin-top: 25px;
-    background: var(--bg-tarjeta);
-    border-radius: 16px;
-    overflow: hidden;
-    border: 1px solid var(--borde);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    padding: 0;
+    /* Dejamos que la tabla sangre limpio a los bordes */
+    overflow-x: auto;
+    /* 👈 Si la tabla es muy ancha, crea un scroll interno suave */
+    -webkit-overflow-scrolling: touch;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
     text-align: left;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+    /* Un pelo más pequeña para pantallas móviles */
+    min-width: 400px;
+    /* Garantiza que los datos no se aplasten horriblemente */
 }
 
-th {
-    background-color: #f8fafc;
-    color: var(--texto-oscuro);
-    padding: 14px 16px;
-    font-weight: 700;
-    border-bottom: 2px solid var(--borde);
-}
-
+th,
 td {
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--borde);
-    color: var(--texto-oscuro);
+    padding: 12px 14px;
 }
 
 tr:nth-child(even) {
@@ -407,5 +387,42 @@ tr:nth-child(even) {
     to {
         transform: scale(1);
         opacity: 1;
+    }
+}
+
+/* ==========================================================================
+   MEDIA QUERIES: OPTIMIZACIÓN PARA PANTALLAS MUY PEQUEÑAS (Celulares)
+   ========================================================================== */
+@media (max-width: 380px) {
+    body {
+        padding: 10px;
+        /* Aprovecha más el espacio en las esquinas */
+    }
+
+    header h1 {
+        font-size: 1.4rem;
+        /* Achica el título para que no salte a 3 líneas */
+    }
+
+    .logo-jumbo {
+        width: 90px;
+        height: 90px;
+        /* Achica el logo en pantallas compactas */
+    }
+
+    .wrapper,
+    .admin-section {
+        padding: 12px;
+        /* Más espacio interno para el contenido */
+    }
+
+    /* Hacer que los textos de la tabla sean compactos en pantallas diminutas */
+    table {
+        font-size: 0.85rem;
+    }
+
+    th,
+    td {
+        padding: 10px 8px;
     }
 }
