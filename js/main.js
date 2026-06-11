@@ -124,50 +124,56 @@ function cerrarModoAdmin() {
     updateTable();
 }
 
-// --- 🎨 5. RENDERIZADO DINÁMICO DE LA INTERFAZ (Tabla de Marcajes) ---
+// --- 🎨 RENDERIZADO DINÁMICO: MODO TARJETAS (CARDS) RESPONSIVAS ---
 function updateTable() {
-    const tbody = document.getElementById('scanned-list');
-    if (!tbody) return;
-    tbody.innerHTML = '';
+    const contenedor = document.getElementById('scanned-list');
+    if (!contenedor) return;
+    contenedor.innerHTML = '';
 
-    // Si la base de datos local está vacía, mostramos el mensaje de espera limpio
+    // Si la base de datos local está vacía, mostramos el mensaje de espera estilizado
     if (!db || db.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="${isAdminActive ? 6 : 5}" style="text-align: center; color: #94a3b8; padding: 30px; font-size: 0.95rem;">
-                    📸 Esperando escaneo de códigos QR...
-                </td>
-            </tr>
+        contenedor.innerHTML = `
+            <div class="tarjeta-vacia">
+                📸 Esperando escaneo de códigos QR o códigos de barra...
+            </div>
         `;
         return;
     }
 
-    // Recorremos el arreglo al revés para que el último en marcar aparezca arriba
+    // Recorremos el arreglo al revés para que la última tarjeta aparezca primero arriba
     for (let i = db.length - 1; i >= 0; i--) {
         const entry = db[i];
-        const tr = document.createElement('tr');
 
-        // 🛡️ BLINDAJE ABSOLUTO DE PROPIEDADES (Mapeo cruzado anti-fallos)
+        // 🛡️ BLINDAJE DE PROPIEDADES (Mapeo anti-fallos)
         const horaMarcaje = entry.hora || entry.HORA || '';
         const nombreTrabajador = entry.nombre || entry.NOMBRE || 'Desconocido';
         const rutTrabajador = entry.rut || entry.RUT || entry.id || entry.ID || '';
         const horarioTrabajador = entry.horario || entry.HORARIO || 'Sin Horario';
+        const seccionTrabajador = entry.seccion || entry.SECCION || entry.sección || entry.SECCIÓN || 'General';
 
-        // Validamos todas las variaciones posibles de la palabra "Sección"
-        const seccionTrabajador = entry.seccion || entry.SECCION || entry.sección || entry.SECCIÓN || entry.area || entry.Area || 'General';
+        // Creamos el elemento contenedor de la tarjeta
+        const card = document.createElement('div');
+        card.className = 'tarjeta-registro';
 
-        // Inyectamos la fila limpia en la tabla de la tablet
-        tr.innerHTML = `
-            <td style="font-family: monospace; font-size: 0.95rem; color: #475569;">${horaMarcaje}</td>
-            <td><strong style="color: #1e293b;">${nombreTrabajador}</strong></td>
-            <td><span class="tag-seccion" style="background-color: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: 600;">${seccionTrabajador}</span></td>
-            <td style="color: #64748b;">${horarioTrabajador}</td>
-            <td style="font-weight: 600; color: #0f172a;">${rutTrabajador}</td>
-            <td class="admin-only" style="display: ${isAdminActive ? 'table-cell' : 'none'} !important; text-align: center;">
-                <button onclick="deleteRecord(${i})" style="background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 4px;">❌</button>
-            </td>
+        // Inyectamos la estructura visual de la tarjeta
+        card.innerHTML = `
+            <div class="tarjeta-encabezado">
+                <span class="tarjeta-hora">🕒 ${horaMarcaje}</span>
+                <span class="tarjeta-badge">${seccionTrabajador}</span>
+            </div>
+            <div class="tarjeta-cuerpo">
+                <h3 class="tarjeta-nombre">${nombreTrabajador}</h3>
+                <div class="tarjeta-detalles">
+                    <p><strong>RUT:</strong> ${rutTrabajador}</p>
+                    <p><strong>Horario contratado:</strong> ${horarioTrabajador}</p>
+                </div>
+            </div>
+            <div class="admin-only tarjeta-acciones" style="display: ${isAdminActive ? 'flex' : 'none'} !important;">
+                <button onclick="deleteRecord(${i})" class="btn-eliminar-tarjeta">❌ Eliminar Marcaje</button>
+            </div>
         `;
-        tbody.appendChild(tr);
+
+        contenedor.appendChild(card);
     }
 }
 
@@ -334,6 +340,40 @@ function cargarBasePersonal(event) {
 
     reader.readAsArrayBuffer(file);
 }
+
+// 📡 ESCUCHADOR GLOBAL PARA PISTOLAS DE CÓDIGO DE BARRA EXTERNAS
+let bufferTecladoPistola = "";
+let tiempoUltimaTecla = Date.now();
+
+window.addEventListener('keydown', function (e) {
+    const ahora = Date.now();
+
+    // Si el usuario está escribiendo en el modal del PIN, no interferimos
+    if (document.activeElement.id === 'modal-pin') return;
+
+    // Las pistolas escriben con una velocidad sobrehumana (menos de 30ms entre caracteres)
+    if (ahora - tiempoUltimaTecla > 50) {
+        bufferTecladoPistola = ""; // Si tardó mucho, es un humano escribiendo despacio, limpiamos
+    }
+    tiempoUltimaTecla = ahora;
+
+    // Si presiona Enter, la pistola terminó de leer
+    if (e.key === 'Enter') {
+        if (bufferTecladoPistola.length >= 7) { // Un RUT chileno válido tiene al menos 7-8 caracteres
+            console.log("🎯 Código detectado por pistola externa:", bufferTecladoPistola);
+            if (typeof onScanSuccess === 'function') {
+                onScanSuccess(bufferTecladoPistola); // Le enviamos el RUT directo al motor de scanner.js
+            }
+        }
+        bufferTecladoPistola = ""; // Limpiamos el contenedor
+        return;
+    }
+
+    // Almacenamos el carácter si es un número o la letra K
+    if (e.key.match(/^[0-9kK\.\-]+$/)) {
+        bufferTecladoPistola += e.key;
+    }
+});
 
 // --- 🔀 8. PUENTES DE ENLACE GLOBAL PARA EVENTOS HTML ---
 window.cargarBasePersonal = cargarBasePersonal;

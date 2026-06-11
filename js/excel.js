@@ -31,7 +31,7 @@ function exportToExcel() {
                 "RUT": registro.rut || registro.id || registro.RUT || registro.ID || "S/R",
                 "NOMBRE_TRABAJADOR": registro.nombre || registro.NOMBRE || "No Registrado en Base de Datos",
                 "SECCION": registro.seccion || registro.SECCION || "Sin Sección",
-                "CASINO": "Casino Central",
+                "CASINO": "Casino J770",
                 "CANTIDAD": 1 // 🔢 Columna clave para sumatorias directas en tablas dinámicas
             };
         });
