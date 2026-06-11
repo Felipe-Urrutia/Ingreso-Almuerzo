@@ -1,6 +1,7 @@
 // ==========================================================================
 // MÓDULO DE ESCÁNER: MODO RÁFAGA DE ALTA VELOCIDAD INDUSTRIAL
 // Optimizado para flujos masivos en Casinos Jumbo
+// Versión: Blindada Anti-Errores y Alta Densidad
 // ==========================================================================
 
 // Variables de control de ráfaga inteligente (Cooldown individual por RUT)
@@ -33,7 +34,7 @@ const configEscanerRapido = {
  * Remueve puntos, guiones y espacios en blanco de cédulas o códigos de barra
  */
 function normalizarID(id) {
-    if (!id) return "";
+    if (id === null || id === undefined) return "";
     return String(id).trim().replace(/[\.\-]/g, '').toUpperCase();
 }
 
@@ -47,7 +48,7 @@ function onScanSuccess(decodedText) {
     if (!rutNormalizadoScan) return;
 
     // 🛡️ FILTRO ANTI-DUPLICADO INSTANTÁNEO (Mismo usuario en ráfaga continua)
-    // Si la cámara sigue apuntando al carnet de Juan, se ignora silenciosamente
+    // Si la cámara sigue apuntando al carnet del mismo operario, se ignora silenciosamente
     if (rutNormalizadoScan === ultimoRutEscaneado && (ahora - tiempoUltimoEscaneo) < COOLDOWN_MISMO_USUARIO) {
         return;
     }
@@ -61,8 +62,10 @@ function onScanSuccess(decodedText) {
     const yaRegistradoHoy = db.find(reg => normalizarID(reg.rut) === rutNormalizadoScan && reg.fecha === fechaActual);
 
     if (yaRegistradoHoy) {
-        playSound('error');
-        showNotification(`⚠️ Ya registrado hoy: ${yaRegistradoHoy.nombre}`, 'error');
+        if (typeof playSound === 'function') playSound('error');
+        if (typeof showNotification === 'function') {
+            showNotification(`⚠️ Ya registrado hoy: ${yaRegistradoHoy.nombre || 'Colaborador'}`, 'error');
+        }
 
         // Seteamos controles de cooldown para evitar spam de alertas en pantalla
         ultimoRutEscaneado = rutNormalizadoScan;
@@ -71,22 +74,24 @@ function onScanSuccess(decodedText) {
     }
 
     // ⚡ CONTROL LIBERADO: Registramos la marca del tiempo para ESTE rut, pero
-    // dejamos la cámara abierta para el siguiente operario en los próximos 0 milisegundos.
+    // dejamos la cámara lista para el siguiente operario en los próximos 0 milisegundos.
     ultimoRutEscaneado = rutNormalizadoScan;
     tiempoUltimoEscaneo = ahora;
 
-    // 📂 BUSCAR EN LA PLANILLA DE PERSONAL CARGADA (Normalización Cruzada)
+    // 📂 BUSCAR EN LA PLANILLA DE PERSONAL CARGADA (Mapeo Cruzado Blindado)
     const empleado = dbPersonal.find(p => {
-        const idPlanilla = p.ID || p.id || p.Id || p.Rut || p.RUT || p.rut;
+        if (!p) return false;
+        // Buscamos dinámicamente cualquier variante de llave que contenga la ID
+        const idPlanilla = p.id || p.ID || p.rut || p.RUT || p.Id || p.Rut || "";
         return normalizarID(idPlanilla) === rutNormalizadoScan;
     });
 
     // 🔄 Sincronización Estricta de Propiedades con excel.js y main.js
     const nuevoRegistro = {
         rut: rutNormalizadoScan, // Enlazado con registro.rut
-        nombre: empleado ? (empleado.NOMBRE || empleado.Nombre || empleado.nombre) : "Desconocido",
-        seccion: empleado ? (empleado.SECCION || empleado.Seccion || empleado.SECCIÓN || empleado.Sección || empleado.Area || empleado.ÁREA || empleado.area) : "Sin Sección",
-        horario: empleado ? (empleado.HORARIO || empleado.Horario || empleado.horario) : "Sin Horario",
+        nombre: empleado ? (empleado.nombre || empleado.NOMBRE || empleado.Nombre || "Desconocido") : "Desconocido",
+        seccion: empleado ? (empleado.seccion || empleado.SECCION || empleado.Seccion || empleado.SECCIÓN || empleado.area || empleado.Area || "Sin Sección") : "Sin Sección",
+        horario: empleado ? (empleado.horario || empleado.HORARIO || empleado.Horario || "Sin Horario") : "Sin Horario",
         fecha: fechaActual, // Enlazado con registro.fecha
         hora: horaActual    // Enlazado con registro.hora
     };
@@ -95,20 +100,22 @@ function onScanSuccess(decodedText) {
     db.push(nuevoRegistro);
     localStorage.setItem('qrRegistros', JSON.stringify(db));
 
-    // 🎨 Actualizar Interfaz Gráfica de forma asíncrona inmediata
-    updateTable();
-    playSound('success');
+    // 🎨 Actualizar Interfaz Gráfica de forma asíncrona inmediata a través de main.js
+    if (typeof updateTable === 'function') {
+        updateTable();
+    }
+
+    // Reproducir pitido de éxito nativo
+    if (typeof playSound === 'function') {
+        playSound('success');
+    }
 
     // Desplegar notificación flotante limpia (PWA Custom Toast)
-    if (empleado) {
-        showNotification(`✅ Ingreso: ${nuevoRegistro.nombre}`, 'success');
-    } else {
-        showNotification(`✅ RUT Registrado: ${rutNormalizadoScan}`, 'info');
+    if (typeof showNotification === 'function') {
+        if (empleado) {
+            showNotification(`✅ Ingreso: ${nuevoRegistro.nombre}`, 'success');
+        } else {
+            showNotification(`✅ RUT Registrado: ${rutNormalizadoScan}`, 'info');
+        }
     }
 }
-
-/**
- * 🛠️ INICIALIZADOR DE RENDIMIENTO NATIVO (Ejecutar al montar la cámara)
- * Asegúrate de pasar 'configEscanerRapido' cuando instancies la librería en tu main.js
- * Ejemplo: const html5QrcodeScanner = new Html5QrcodeScanner("reader", configEscanerRapido, false);
- */

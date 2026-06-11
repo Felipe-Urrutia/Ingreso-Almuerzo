@@ -12,7 +12,7 @@ let isAdminActive = false;
 let clickCount = 0;
 let clickTimeout;
 
-const PIN_CORRECTO = "3805"; // 🔒 Tu contraseña real se mantiene intacta
+const PIN_CORRECTO = "3805"; // 🔒 Contraseña real de supervisor
 
 // --- 🚀 2. INICIALIZADOR DE LA APP (DOM Ready) ---
 document.addEventListener("DOMContentLoaded", function () {
@@ -24,10 +24,11 @@ document.addEventListener("DOMContentLoaded", function () {
         screen.orientation.unlock(); // Rompe cualquier bloqueo vertical previo del navegador
         console.log("🔄 Orientación desbloqueada por software con éxito.");
     }
+
     // Encender la cámara conectándola a la configuración rápida de scanner.js
     if (document.getElementById("reader")) {
         try {
-            // Si por alguna razón configEscanerRapido no cargó, usamos un fallback optimizado
+            // Si por alguna razón configEscanerRapido no cargó en scanner.js, usamos un fallback optimizado
             const opcionesCamara = typeof configEscanerRapido !== 'undefined' ? configEscanerRapido : { fps: 25, qrbox: 250, aspectRatio: 1.0 };
 
             let html5QrcodeScanner = new Html5QrcodeScanner(
@@ -66,7 +67,7 @@ function abrirModalSecreto() {
     if (!modal || !pinInput) return;
 
     pinInput.value = ""; // Limpia intentos anteriores
-    modal.style.display = "flex"; // Lo muestra en pantalla con desenfoque
+    modal.style.display = "flex"; // Lo muestra en pantalla con un flexbox centrado
     pinInput.focus(); // Enfoca automáticamente el input para escribir directo en móviles
 }
 
@@ -181,9 +182,9 @@ function deleteRecord(index) {
     }
 }
 
-// ==========================================
+// ==========================================================================
 // ACCIÓN ADMINISTRATIVA: VACIAR HISTORIAL (MODAL PRO)
-// ==========================================
+// ==========================================================================
 function clearAllRecords() {
     const confirmModal = document.getElementById('custom-confirm-modal');
     if (confirmModal) {
@@ -210,31 +211,26 @@ function ejecutarVaciadoReal() {
 // --- 🔊 6. AUDIO INTEGRADO POR HARDWARE (Pitidos Nativos con Desbloqueo Táctil) ---
 let audioCtx = null;
 
-// Esta función inicializa y activa el motor de audio de forma segura
 function asegurarAudioContext() {
     if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
-    // Si el motor está dormido por restricciones del navegador, lo despertamos de golpe
     if (audioCtx.state === 'suspended') {
         audioCtx.resume();
     }
     return audioCtx;
 }
 
-// 📱 ESCUCHADORES TÁCTILES: Apenas el usuario toque CUALQUIER parte de la pantalla,
-// el navegador autorizará los sonidos y el escáner podrá pitar libremente en ráfaga.
+// Escuchadores táctiles para desbloquear políticas de reproducción multimedia de navegadores
 ['click', 'touchstart', 'touchend'].forEach(evento => {
     document.addEventListener(evento, () => {
         asegurarAudioContext();
-    }, { once: true }); // 'once: true' hace que se ejecute solo la primera vez y no gaste recursos
+    }, { once: true });
 });
 
 function playSound(type) {
     try {
-        // Activamos/Verificamos el estado del motor antes de reproducir
         const ctx = asegurarAudioContext();
-
         const oscillator = ctx.createOscillator();
         const gainNode = ctx.createGain();
 
@@ -243,35 +239,53 @@ function playSound(type) {
 
         if (type === 'success') {
             oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(880, ctx.currentTime); // Pitido agudo limpio
-            gainNode.gain.setValueAtTime(0.12, ctx.currentTime);       // Subimos un pelo el volumen
+            oscillator.frequency.setValueAtTime(880, ctx.currentTime); // Tono agudo limpio
+            gainNode.gain.setValueAtTime(0.12, ctx.currentTime);
             oscillator.start();
-            oscillator.stop(ctx.currentTime + 0.12);                  // 120 milisegundos de duración
+            oscillator.stop(ctx.currentTime + 0.12);
         } else if (type === 'error') {
             oscillator.type = 'sawtooth';
-            oscillator.frequency.setValueAtTime(180, ctx.currentTime); // Zumbido grave raspado de alerta
-            gainNode.gain.setValueAtTime(0.18, ctx.currentTime);       // Volumen más fuerte para errores
+            oscillator.frequency.setValueAtTime(180, ctx.currentTime); // Zumbido grave de alerta
+            gainNode.gain.setValueAtTime(0.18, ctx.currentTime);
             oscillator.start();
-            oscillator.stop(ctx.currentTime + 0.3);                   // 300 milisegundos de duración
+            oscillator.stop(ctx.currentTime + 0.3);
         }
     } catch (e) {
-        console.warn("El sistema de audio nativo no pudo reproducir el tono en este fotograma:", e);
+        console.warn("El sistema de audio nativo no pudo reproducir el tono:", e);
     }
+}
+
+// --- 💬 7. TOAST CUSTOM: NOTIFICACIONES FLOTANTES ---
+function showNotification(message, type = 'success') {
+    const notif = document.getElementById('notification');
+    if (!notif) return;
+
+    notif.textContent = message;
+    notif.style.display = 'block';
+
+    // Inyección de colores de estado dinámicos adaptados al diseño corporativo
+    if (type === 'success') {
+        notif.style.backgroundColor = '#2ecc71'; // Verde Éxito
+    } else if (type === 'error') {
+        notif.style.backgroundColor = '#e74c3c'; // Rojo Alerta
+    } else if (type === 'info') {
+        notif.style.backgroundColor = '#34495e'; // Gris Informativo
+    } else {
+        notif.style.backgroundColor = '#2980b9'; // Azul
+    }
+
+    setTimeout(() => {
+        notif.style.display = 'none';
+    }, 3000);
 }
 
 // ==========================================================================
 // 📂 CARGADOR MAESTRO DE PERSONAL: Sincronización Absoluta de Planilla
 // ==========================================================================
-
-/**
- * Función vinculada al evento 'change' del input file del Excel de personal.
- * Ejemplo en HTML: <input type="file" id="excel-file" onchange="cargarBasePersonal(event)">
- */
 function cargarBasePersonal(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Levantamos una notificación de que la tablet está procesando el archivo
     showNotification('⏳ Procesando nómina de personal...', 'info');
 
     const reader = new FileReader();
@@ -280,44 +294,35 @@ function cargarBasePersonal(event) {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
 
-            // Tomamos la primera pestaña del archivo Excel
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
-
-            // Convertimos la hoja a un JSON plano
             const jsonCrudo = XLSX.utils.sheet_to_json(worksheet);
 
             if (!jsonCrudo || jsonCrudo.length === 0) {
-                throw new Error("El archivo Excel está vacío o no tiene el formato correcto.");
+                throw new Error("El archivo Excel está vacío.");
             }
 
-            // 🛡️ NORMALIZACIÓN CRUZADA DE FILAS (Pasamos todo a un estándar limpio)
+            // Normalización cruzada inmediata al mapear
             dbPersonal = jsonCrudo.map(empleado => {
-                // Capturamos cualquier variante de la columna ID / RUT
                 const idOriginal = empleado.ID || empleado.id || empleado.Id || empleado.Rut || empleado.RUT || empleado.rut || "";
 
                 return {
-                    // Guardamos todas las combinaciones posibles para que scanner.js JAMÁS falle al buscar
-                    ID: String(idOriginal).trim(),
                     id: String(idOriginal).trim(),
-                    RUT: String(idOriginal).trim(),
                     rut: String(idOriginal).trim(),
-
-                    NOMBRE: empleado.NOMBRE || empleado.Nombre || empleado.nombre || "Desconocido",
-                    SECCION: empleado.SECCION || empleado.Seccion || empleado.sección || empleado.SECCIÓN || empleado.Area || empleado.ÁREA || empleado.area || "Sin Sección",
-                    HORARIO: empleado.HORARIO || empleado.Horario || empleado.horario || "Sin Horario"
+                    ID: String(idOriginal).trim(),
+                    RUT: String(idOriginal).trim(),
+                    nombre: empleado.NOMBRE || empleado.Nombre || empleado.nombre || "Desconocido",
+                    seccion: empleado.SECCION || empleado.Seccion || empleado.sección || empleado.SECCIÓN || empleado.Area || empleado.ÁREA || empleado.area || "Sin Sección",
+                    horario: empleado.HORARIO || empleado.Horario || empleado.horario || "Sin Horario"
                 };
             });
 
-            // 💾 PERSISTENCIA EN MEMORIA GEMELA (Guardamos bajo ambos nombres por seguridad)
+            // 💾 PERSISTENCIA EN MEMORIA GEMELA (Guardamos bajo ambos nombres por compatibilidad)
             localStorage.setItem('dbPersonal', JSON.stringify(dbPersonal));
             localStorage.setItem('planillaPersonal', JSON.stringify(dbPersonal));
 
-            // Éxito rotundo
             playSound('success');
             showNotification(`✅ Base cargada: ${dbPersonal.length} trabajadores listos`, 'success');
-
-            // Limpiamos el input del HTML para que permita volver a subir el mismo archivo si se requiere
             event.target.value = '';
 
         } catch (error) {
@@ -329,3 +334,8 @@ function cargarBasePersonal(event) {
 
     reader.readAsArrayBuffer(file);
 }
+
+// --- 🔀 8. PUENTES DE ENLACE GLOBAL PARA EVENTOS HTML ---
+window.cargarBasePersonal = cargarBasePersonal;
+window.handleFileUpload = cargarBasePersonal;
+window.handleExcelUpload = cargarBasePersonal;
