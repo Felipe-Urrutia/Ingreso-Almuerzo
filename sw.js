@@ -1,10 +1,9 @@
 
 // Archivos críticos que se guardarán para uso offline inmediato
 // (Ahora utilizando rutas relativas para evitar errores de despliegue)
-const CACHE_NAME = 'scanner-pro-v14'; 
+const CACHE_NAME = 'scanner-pro-v15'; 
 
-const ASSETS_TO_CACHE = [
-  '/',                   // 👈 Raíz absoluta del servidor local
+const ASSETS_TO_CACHE = [                 // 👈 Raíz absoluta del servidor local
   './',                  // 👈 Raíz relativa
   './index.html',        // 👈 Archivo físico de arranque
   './manifest.json',
