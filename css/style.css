@@ -54,6 +54,12 @@ header {
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
+    cursor: pointer;
+    /* Muestra la manito al pasar el mouse en PC */
+    user-select: none;
+    /* Evita efectos raros de selección al presionar rápido */
+    -webkit-user-select: none;
+    /* Compatibilidad para navegadores de tablets/móviles */
 }
 
 header h1 {
@@ -131,7 +137,7 @@ header h1 {
 }
 
 /* ==========================================================================
-   PANEL DE ADMINISTRACIÓN
+   PANEL DE ADMINISTRACIÓN (Estilo Corporativo Claro)
    ========================================================================== */
 .admin-section {
     width: 100%;
@@ -143,68 +149,77 @@ header h1 {
     border: 1px solid var(--borde);
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    gap: 14px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
 }
 
-button {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
+/* El botón de Exportar que siempre ve el usuario */
+#btn-export {
+    background-color: var(--verde-jumbo);
+    color: white;
     font-size: 1rem;
+    font-weight: 600;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(86, 214, 131, 0.2);
+    transition: all 0.2s ease;
+}
+
+#btn-export:hover {
+    background-color: var(--verde-hover);
+    transform: translateY(-1px);
+}
+
+/* 📂 Botón personalizado para Cargar Excel (Antes era un texto simple) */
+.custom-file-upload {
+    display: block;
+    text-align: center;
+    padding: 14px;
+    background-color: #f1f5f9;
+    /* Gris azulado muy limpio */
+    color: var(--texto-oscuro);
+    border: 2px dashed #cbd5e1;
+    /* Borde punteado elegante */
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.custom-file-upload:hover {
+    background-color: #e2e8f0;
+    border-color: #94a3b8;
+}
+
+/* ⚠️ Botón de Vaciar Historial (Peligro) */
+#btn-clear {
+    width: 100%;
+    padding: 14px;
+    background-color: #fff5f5;
+    /* Fondo rojizo muy suave */
+    color: var(--rojo-alerta);
+    border: 1px solid #feb2b2;
+    border-radius: 10px;
+    font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
-button:active {
-    transform: scale(0.99);
-}
-
-#btn-text {
-    background-color: #edf2f7;
-    color: var(--texto-oscuro);
-    border: 1px solid var(--borde);
-}
-
-#btn-text:hover {
-    background-color: #e2e8f0;
-}
-
-#btn-export {
-    background-color: var(--verde-jumbo);
-    color: white;
-}
-
-#btn-export:hover {
-    background-color: var(--verde-hover);
-}
-
-#btn-clear {
-    background-color: transparent;
-    color: var(--rojo-alerta);
-    border: 1px solid var(--rojo-alerta);
-}
-
 #btn-clear:hover {
     background-color: var(--rojo-alerta);
     color: white;
+    border-color: var(--rojo-alerta);
+    box-shadow: 0 2px 6px rgba(231, 76, 60, 0.2);
 }
 
-input[type="file"] {
-    display: none;
-}
-
-input[type="password"] {
-    width: 100%;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid var(--borde);
-    background-color: #f8fafc;
-    color: var(--texto-oscuro);
-    text-align: center;
-    font-size: 1rem;
+/* Comportamiento al presionar cualquier botón */
+.admin-section button:active,
+.custom-file-upload:active {
+    transform: scale(0.98);
 }
 
 /* ==========================================================================
