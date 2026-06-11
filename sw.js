@@ -1,7 +1,7 @@
 
 // Archivos críticos que se guardarán para uso offline inmediato
 // (Ahora utilizando rutas relativas para evitar errores de despliegue)
-const CACHE_NAME = 'scanner-pro-v25'; 
+const CACHE_NAME = 'scanner-pro-v26'; 
 
 const ASSETS_TO_CACHE = [                 // 👈 Raíz absoluta del servidor local
   './',                  // 👈 Raíz relativa
