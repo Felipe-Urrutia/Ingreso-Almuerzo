@@ -98,7 +98,7 @@ function clasificarRangoHorario(horaString) {
         const minTotales = (hora * 60) + minutos;
 
         // --------------------------------------------------------------------------
-        // EVALUACIÓN DE VENTANAS HORARIAS DE LOS 4 TURNOS OFICIALES JUMBO
+        // 1. EVALUACIÓN DE VENTANAS HORARIAS DE LOS 4 TURNOS OFICIALES JUMBO
         // --------------------------------------------------------------------------
 
         // 🕒 TURNO 1: 12:00 a 12:30 (720 a 750 minutos)
@@ -122,25 +122,27 @@ function clasificarRangoHorario(horaString) {
         }
 
         // --------------------------------------------------------------------------
-        // EVALUACIÓN DE OTROS SERVICIOS Y MARCAJES REZAGADOS
+        // 2. EVALUACIÓN DE OTROS SERVICIOS, REZAGADOS Y VENTANAS INTERMEDIAS
         // --------------------------------------------------------------------------
 
-        // Desayuno: 06:00 a 11:59 (360 a 719 minutos)
+        // 🥞 Desayuno: 06:00 a 11:59 (360 a 719 minutos)
         if (minTotales >= 360 && minTotales < 720) {
             return { bloque: "Mañana", servicio: "DESAYUNO" };
         }
 
-        // Almuerzo Rezagado / Fuera de Horario (Entre las 12:00 y las 16:59 en ventanas muertas)
+        // ⏳ Almuerzo Fuera de Turno / Ventanas Muertas / Rezagados de Tarde: 
+        // Cubre desde las 12:00 (720) hasta las 16:59 (1019) que no hayan calzado con los turnos oficiales arriba.
         if (minTotales >= 720 && minTotales < 1020) {
             return { bloque: "Ventana / Rezagado", servicio: "ALMUERZO FUERA DE TURNO" };
         }
 
-        // Once / Cena: 17:00 a 20:59 (1020 a 1259 minutos)
+        // ☕ Once / Cena: 17:00 a 20:59 (1020 a 1259 minutos)
         if (minTotales >= 1020 && minTotales < 1260) {
             return { bloque: "Tarde", servicio: "ONCE / CENA" };
         }
 
-        // Colación Nocturna / Turno de Cierre: 21:00 a 05:59
+        // 🌙 Colación Nocturna / Turno de Cierre: 21:00 a 05:59 (1260 a 359 minutos)
+        // Nota: Maneja limpiamente el cambio de día a la medianoche (minTotales >= 1260 o minTotales < 360)
         return { bloque: "Nocturno", servicio: "COLACIÓN NOCTURNA" };
 
     } catch (e) {
