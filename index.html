@@ -20,23 +20,30 @@
 <body>
 
     <header>
-        <div class="logo-jumbo"></div>
+        <div class="logo-jumbo" onclick="clickSecretoAdmin()" style="cursor: pointer; user-select: none;"></div>
         <h1>Control de Asistencia - Jumbo</h1>
     </header>
-
     <main>
         <div id="scanner-visuals" class="wrapper">
             <div id="reader"></div>
             <div id="notification" class="toast" style="display: none;"></div>
         </div>
 
-        <section id="admin-panel" class="admin-section">
-            <input type="file" id="excel-upload" accept=".xlsx, .xls">
-            <button id="btn-text">Cargar BD Personal</button>
-            <button id="btn-export" onclick="exportToExcel()">Exportar Excel Analítico</button>
-            <button id="btn-clear" onclick="clearAllRecords()">Vaciar Todo</button>
-            <input type="password" id="pin-input" placeholder="PIN Admin">
-        </section>
+        <div class="admin-section">
+
+            <div class="admin-only" style="display: none;">
+                <label for="excel-upload" class="custom-file-upload">
+                    📂 Cargar Base de Datos (Excel)
+                </label>
+                <input type="file" id="excel-upload" accept=".xlsx, .xls" style="display: none;">
+            </div>
+
+            <button id="btn-export" onclick="exportToExcel()">📊 Exportar Asistencia (Excel)</button>
+
+            <div class="admin-only" style="display: none;">
+                <button id="btn-clear" onclick="clearAllRecords()">⚠️ Vaciar Historial del Día</button>
+            </div>
+        </div>
 
         <section class="table-container">
             <table>
