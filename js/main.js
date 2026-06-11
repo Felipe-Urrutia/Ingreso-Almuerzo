@@ -19,6 +19,11 @@ document.addEventListener("DOMContentLoaded", function () {
     // Dibujar la tabla inicialmente con los datos persistidos
     updateTable();
 
+    // 🔄 DESBLOQUEO DE ORIENTACIÓN POR SOFTWARE (Plan de Respaldo)
+    if (screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock(); // Rompe cualquier bloqueo vertical previo del navegador
+        console.log("🔄 Orientación desbloqueada por software con éxito.");
+    }
     // Encender la cámara conectándola a la configuración rápida de scanner.js
     if (document.getElementById("reader")) {
         try {
