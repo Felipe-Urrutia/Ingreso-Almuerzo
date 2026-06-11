@@ -1,13 +1,23 @@
-const CACHE_NAME = 'scanner-pro-v13';
 
 // Archivos críticos que se guardarán para uso offline inmediato
 // (Ahora utilizando rutas relativas para evitar errores de despliegue)
+const CACHE_NAME = 'scanner-pro-v14'; 
+
 const ASSETS_TO_CACHE = [
-  './',
-  './index.html',
-  './js/html5-qrcode.min.js',
-  './js/xlsx.style.min.js', // librería con estilos
+  '/',                   // 👈 Raíz absoluta del servidor local
+  './',                  // 👈 Raíz relativa
+  './index.html',        // 👈 Archivo físico de arranque
   './manifest.json',
+  './css/styles.css',    // 👈 Asegúrate de que tus estilos también se guarden offline
+
+  // Módulos JS locales
+  './js/html5-qrcode.min.js',
+  './js/xlsx.style.min.js',
+  './js/main.js',
+  './js/scanner.js',
+  './js/excel.js',
+
+  // Imágenes locales
   './img/icon-512.png',
   './img/icon-192.png',
   './img/Aurora.png'
