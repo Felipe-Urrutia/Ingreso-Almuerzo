@@ -1,16 +1,16 @@
-const CACHE_NAME = 'scanner-pro-v12';
+const CACHE_NAME = 'scanner-pro-v13';
 
 // Archivos críticos que se guardarán para uso offline inmediato
 // (Ahora utilizando rutas relativas para evitar errores de despliegue)
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './html5-qrcode.min.js',
-  './xlsx.style.min.js', // 👈 Cambiado aquí para cachear la librería con estilos
+  './js/html5-qrcode.min.js',
+  './js/xlsx.style.min.js', // librería con estilos
   './manifest.json',
-  './icon-512.png',
-  './icon-192.png',
-  './Aurora.png'
+  './img/icon-512.png',
+  './img/icon-192.png',
+  './img/Aurora.png'
 ];
 
 // Instalar el Service Worker y almacenar los archivos en caché
