@@ -55,10 +55,26 @@
             </table>
         </section>
     </main>
+    <div id="custom-admin-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Autenticación de Seguridad</h3>
+            <p>Ingrese credencial de supervisor para acceder:</p>
+            <input type="password" id="modal-pin" placeholder="••••" maxlength="6" autocomplete="off">
+            <div class="modal-buttons">
+                <button class="btn-modal-cancel" onclick="cerrarModalSecreto()">Cancelar</button>
+                <button class="btn-modal-confirm" onclick="verificarPinModal()">Ingresar</button>
+            </div>
+        </div>
+    </div>
 
-    <script src="./js/excel.js"></script>
-    <script src="./js/scanner.js"></script>
-    <script src="./js/main.js"></script>
+    <script src="js/excel.js"></script>
+    <script src="js/scanner.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+<script src="./js/excel.js"></script>
+<script src="./js/scanner.js"></script>
+<script src="./js/main.js"></script>
 </body>
 
 </html>
