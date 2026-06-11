@@ -69,8 +69,21 @@
             <p>Ingrese credencial de supervisor para acceder:</p>
             <input type="password" id="modal-pin" placeholder="••••" maxlength="6" autocomplete="off">
             <div class="modal-buttons">
-                <button class="btn-modal-cancel" onclick="cerrarModalSecreto()">Cancelar</button>
                 <button class="btn-modal-confirm" onclick="verificarPinModal()">Ingresar</button>
+                <button class="btn-modal-cancel" onclick="cerrarModalSecreto()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-confirm-modal" class="modal-overlay">
+        <div class="modal-content" style="border-top: 4px solid var(--rojo-alerta);">
+            <h3>⚠️ ¿Vaciar Historial?</h3>
+            <p>Esta acción eliminará de forma permanente TODOS los marcajes del día. No se puede deshacer.</p>
+            <div class="modal-buttons">
+                <button class="btn-modal-confirm"
+                    style="background-color: var(--rojo-alerta) !important; box-shadow: 0 4px 12px rgba(231, 76, 60, 0.2);"
+                    onclick="ejecutarVaciadoReal()">Sí, Borrar Todo</button>
+                <button class="btn-modal-cancel" onclick="cerrarConfirmModal()">Cancelar</button>
             </div>
         </div>
     </div>
