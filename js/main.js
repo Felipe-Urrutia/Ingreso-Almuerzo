@@ -253,3 +253,74 @@ function playSound(type) {
         console.warn("El sistema de audio nativo no pudo reproducir el tono en este fotograma:", e);
     }
 }
+
+// ==========================================================================
+// 📂 CARGADOR MAESTRO DE PERSONAL: Sincronización Absoluta de Planilla
+// ==========================================================================
+
+/**
+ * Función vinculada al evento 'change' del input file del Excel de personal.
+ * Ejemplo en HTML: <input type="file" id="excel-file" onchange="cargarBasePersonal(event)">
+ */
+function cargarBasePersonal(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Levantamos una notificación de que la tablet está procesando el archivo
+    showNotification('⏳ Procesando nómina de personal...', 'info');
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+
+            // Tomamos la primera pestaña del archivo Excel
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+
+            // Convertimos la hoja a un JSON plano
+            const jsonCrudo = XLSX.utils.sheet_to_json(worksheet);
+
+            if (!jsonCrudo || jsonCrudo.length === 0) {
+                throw new Error("El archivo Excel está vacío o no tiene el formato correcto.");
+            }
+
+            // 🛡️ NORMALIZACIÓN CRUZADA DE FILAS (Pasamos todo a un estándar limpio)
+            dbPersonal = jsonCrudo.map(empleado => {
+                // Capturamos cualquier variante de la columna ID / RUT
+                const idOriginal = empleado.ID || empleado.id || empleado.Id || empleado.Rut || empleado.RUT || empleado.rut || "";
+
+                return {
+                    // Guardamos todas las combinaciones posibles para que scanner.js JAMÁS falle al buscar
+                    ID: String(idOriginal).trim(),
+                    id: String(idOriginal).trim(),
+                    RUT: String(idOriginal).trim(),
+                    rut: String(idOriginal).trim(),
+
+                    NOMBRE: empleado.NOMBRE || empleado.Nombre || empleado.nombre || "Desconocido",
+                    SECCION: empleado.SECCION || empleado.Seccion || empleado.sección || empleado.SECCIÓN || empleado.Area || empleado.ÁREA || empleado.area || "Sin Sección",
+                    HORARIO: empleado.HORARIO || empleado.Horario || empleado.horario || "Sin Horario"
+                };
+            });
+
+            // 💾 PERSISTENCIA EN MEMORIA GEMELA (Guardamos bajo ambos nombres por seguridad)
+            localStorage.setItem('dbPersonal', JSON.stringify(dbPersonal));
+            localStorage.setItem('planillaPersonal', JSON.stringify(dbPersonal));
+
+            // Éxito rotundo
+            playSound('success');
+            showNotification(`✅ Base cargada: ${dbPersonal.length} trabajadores listos`, 'success');
+
+            // Limpiamos el input del HTML para que permita volver a subir el mismo archivo si se requiere
+            event.target.value = '';
+
+        } catch (error) {
+            console.error("Error crítico al procesar el Excel de personal:", error);
+            playSound('error');
+            showNotification('❌ Error: Formato de Excel inválido', 'error');
+        }
+    };
+
+    reader.readAsArrayBuffer(file);
+}
