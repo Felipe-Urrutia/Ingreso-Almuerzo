@@ -135,3 +135,42 @@ function cerrarModoAdmin() {
     showNotification('🔒 Acceso Cerrado', 'info');
     updateTable();
 }
+
+// ==========================================
+// ACCIÓN ADMINISTRATIVA: VACIAR HISTORIAL (MODAL PRO)
+// ==========================================
+
+// 1. El botón de la interfaz llama a esta función para abrir el cartel
+function clearAllRecords() {
+    const confirmModal = document.getElementById('custom-confirm-modal');
+    if (confirmModal) {
+        confirmModal.style.display = "flex"; // Levanta el modal visual elegante
+    }
+}
+
+// 2. Función para cerrar el cartel si se arrepiente
+function cerrarConfirmModal() {
+    const confirmModal = document.getElementById('custom-confirm-modal');
+    if (confirmModal) {
+        confirmModal.style.display = "none";
+    }
+}
+
+// 3. La acción real que se ejecuta SOLO si presiona el botón rojo "Sí, Borrar Todo"
+function ejecutarVaciadoReal() {
+    // Limpiamos los datos del sistema
+    db = [];
+    localStorage.setItem('qrRegistros', JSON.stringify(db));
+
+    // Cerramos el modal de advertencia
+    cerrarConfirmModal();
+
+    // Refrescamos la tabla para que se vea vacía
+    updateTable();
+
+    // Avisamos con tu propia notificación estilizada de la PWA
+    showNotification('⚠️ Historial del día vaciado por completo', 'error');
+
+    // Cerramos el panel administrativo por seguridad
+    cerrarModoAdmin();
+}
