@@ -2,14 +2,20 @@
    VARIABLES Y CONFIGURACIÓN BASE (Tema Claro Corporativo)
    ========================================================================== */
 :root {
-    --bg-principal: #f4f6f9;    /* Gris neutro muy claro para el fondo */
-    --bg-tarjeta: #ffffff;      /* Blanco puro para los contenedores */
-    --verde-jumbo: #56D683;     /* El verde característico de tu app */
+    --bg-principal: #f4f6f9;
+    /* Gris neutro muy claro para el fondo */
+    --bg-tarjeta: #ffffff;
+    /* Blanco puro para los contenedores */
+    --verde-jumbo: #56D683;
+    /* El verde característico de tu app */
     --verde-hover: #43b56c;
     --rojo-alerta: #e74c3c;
-    --texto-oscuro: #2c3e50;    /* Gris oscuro azulado para máxima legibilidad */
-    --texto-mutado: #7f8c8d;    /* Para datos secundarios */
-    --borde: #e2e8f0;           /* Líneas divisorias sutiles */
+    --texto-oscuro: #2c3e50;
+    /* Gris oscuro azulado para máxima legibilidad */
+    --texto-mutado: #7f8c8d;
+    /* Para datos secundarios */
+    --borde: #e2e8f0;
+    /* Líneas divisorias sutiles */
 }
 
 * {
@@ -66,7 +72,8 @@ header h1 {
     background: var(--bg-tarjeta);
     border-radius: 16px;
     padding: 15px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05); /* Sombra suave */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    /* Sombra suave */
     border: 1px solid var(--borde);
     position: relative;
     overflow: hidden;
@@ -104,13 +111,24 @@ header h1 {
     z-index: 10;
     text-align: center;
     white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     animation: fadeInUp 0.2s ease-out;
 }
 
-.toast.success { background-color: var(--verde-jumbo); color: #ffffff; }
-.toast.error { background-color: var(--rojo-alerta); color: #ffffff; }
-.toast.info { background-color: #3498db; color: #ffffff; }
+.toast.success {
+    background-color: var(--verde-jumbo);
+    color: #ffffff;
+}
+
+.toast.error {
+    background-color: var(--rojo-alerta);
+    color: #ffffff;
+}
+
+.toast.info {
+    background-color: #3498db;
+    color: #ffffff;
+}
 
 /* ==========================================================================
    PANEL DE ADMINISTRACIÓN
@@ -126,7 +144,7 @@ header h1 {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 
 button {
@@ -140,32 +158,43 @@ button {
     transition: all 0.2s ease;
 }
 
-button:active { transform: scale(0.99); }
+button:active {
+    transform: scale(0.99);
+}
 
 #btn-text {
     background-color: #edf2f7;
     color: var(--texto-oscuro);
     border: 1px solid var(--borde);
 }
-#btn-text:hover { background-color: #e2e8f0; }
+
+#btn-text:hover {
+    background-color: #e2e8f0;
+}
 
 #btn-export {
     background-color: var(--verde-jumbo);
     color: white;
 }
-#btn-export:hover { background-color: var(--verde-hover); }
+
+#btn-export:hover {
+    background-color: var(--verde-hover);
+}
 
 #btn-clear {
     background-color: transparent;
     color: var(--rojo-alerta);
     border: 1px solid var(--rojo-alerta);
 }
+
 #btn-clear:hover {
     background-color: var(--rojo-alerta);
     color: white;
 }
 
-input[type="file"] { display: none; }
+input[type="file"] {
+    display: none;
+}
 
 input[type="password"] {
     width: 100%;
@@ -189,7 +218,7 @@ input[type="password"] {
     border-radius: 16px;
     overflow: hidden;
     border: 1px solid var(--borde);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 
 table {
@@ -214,7 +243,8 @@ td {
 }
 
 tr:nth-child(even) {
-    background-color: #fdfdfd; /* Efecto cebra muy sutil */
+    background-color: #fdfdfd;
+    /* Efecto cebra muy sutil */
 }
 
 .tag-seccion {
@@ -234,9 +264,117 @@ tr:nth-child(even) {
     width: auto;
 }
 
-.admin-only { display: none !important; }
+.admin-only {
+    display: none !important;
+}
 
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translate(-50%, 10px); }
-    to { opacity: 1; transform: translate(-50%, 0); }
+    from {
+        opacity: 0;
+        transform: translate(-50%, 10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+/* ==========================================================================
+   ESTILOS DEL MODAL DE SEGURIDAD (Camuflaje Nativo)
+   ========================================================================== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    /* Fondo oscurecido sutil */
+    backdrop-filter: blur(4px);
+    /* Difumina el fondo para verse Pro */
+    display: none;
+    /* Oculto por defecto */
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    /* Siempre por encima de todo */
+}
+
+.modal-content {
+    background-color: var(--bg-tarjeta);
+    padding: 25px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 360px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--borde);
+    animation: scaleUp 0.2s ease-out;
+}
+
+.modal-content h3 {
+    color: var(--texto-oscuro);
+    margin-bottom: 8px;
+    font-size: 1.2rem;
+}
+
+.modal-content p {
+    color: var(--texto-mutated);
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+}
+
+#modal-pin {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.3rem;
+    letter-spacing: 8px;
+    /* Hace que los puntos de la contraseña se vean separados */
+    margin-bottom: 20px;
+    border: 2px solid var(--borde);
+    border-radius: 8px;
+    background-color: #f8fafc;
+    text-align: center;
+}
+
+#modal-pin:focus {
+    border-color: var(--verde-jumbo);
+    outline: none;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-modal-cancel {
+    background-color: #edf2f7;
+    color: var(--texto-oscuro);
+}
+
+.btn-modal-cancel:hover {
+    background-color: #e2e8f0;
+}
+
+.btn-modal-confirm {
+    background-color: var(--verde-jumbo);
+    color: white;
+}
+
+.btn-modal-confirm:hover {
+    background-color: var(--verde-hover);
+}
+
+/* Animación de entrada suave */
+@keyframes scaleUp {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
