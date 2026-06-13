@@ -3,7 +3,7 @@
 // Versión: Anti-Caídas por Archivos Faltantes
 // ==========================================================================
 
-const CACHE_NAME = 'scanner-pro-v33'; // 🔥 Subimos de versión para forzar la limpieza en la Lenovo
+const CACHE_NAME = 'scanner-pro-v34'; // 🔥 Subimos de versión para forzar la limpieza en la Lenovo
 
 // 1. Archivos críticos e indispensables para que la app abra (Si fallan, la app no funciona)
 const CRITICAL_ASSETS = [
