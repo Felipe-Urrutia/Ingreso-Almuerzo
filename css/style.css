@@ -428,21 +428,21 @@ tr:nth-child(even) {
 }
 
 /* ==========================================================================
-   🔄 DISEÑO MODO RECOMODADO HORIZONTAL (TABLET LENOVO LANDSCAPE)
+   🔄 DISEÑO MODO RECOMODADO HORIZONTAL (PANEL ADMINISTRATIVO SOBRE TARJETAS)
    ========================================================================== */
 @media (orientation: landscape) and (min-width: 650px) {
     body {
         padding: 15px;
         display: grid;
         grid-template-columns: 1fr 1.4fr;
-        /* 🌓 Lado izquierdo (Cámara/Admin) | Lado derecho (Tarjetas) */
+        /* Izquierda: Lector | Derecha: Control e Info */
         grid-template-rows: auto 1fr;
         gap: 16px;
         width: 100vw !important;
         max-width: 100vw !important;
         height: 100vh;
         overflow: hidden;
-        /* 🚫 Evita el scroll molesto de toda la pantalla de la tablet */
+        /* App congelada al 100% de la tablet */
         box-sizing: border-box;
         align-items: start;
     }
@@ -454,15 +454,12 @@ tr:nth-child(even) {
         align-items: center;
         gap: 15px;
         max-width: 100%;
-        /* Rompe el límite del móvil */
-        text-align: left;
     }
 
     .logo-jumbo {
         width: 50px !important;
         height: 50px !important;
         margin: 0;
-        /* Alineación limpia al inicio */
     }
 
     header h1 {
@@ -472,44 +469,64 @@ tr:nth-child(even) {
 
     .main-content-layout {
         display: contents;
-        /* Mantiene el flujo grid nativo */
     }
 
-    /* 🛡️ ELIMINACIÓN DE CAMISAS DE FUERZA (Clave del fallo) */
-    .wrapper,
-    .admin-section {
+    /* 📸 COLUMNA IZQUIERDA: Centrada y fija para el lector */
+    .bloque-izquierdo {
         grid-column: 1;
-        /* Van al bloque izquierdo */
+        grid-row: 2;
         width: 100% !important;
         max-width: 100% !important;
-        /* 🔥 Forzamos a expandirse al ancho total de la columna */
-        margin-bottom: 0;
         box-sizing: border-box;
     }
 
     .wrapper {
-        height: auto;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-bottom: 0;
     }
 
-    .admin-section {
-        margin-top: 0;
-        gap: 10px;
-        padding: 16px;
-    }
-
-    /* 🎴 REDIRECCIÓN DEL CONTENEDOR DE TARJETAS (Lado Derecho) */
-    .contenedor-tarjetas {
+    /* 📊 COLUMNA DERECHA: Contenedor estirable de control y tarjetas */
+    .table-container {
         grid-column: 2;
         grid-row: 2;
         height: calc(100vh - 100px) !important;
-        /* Mide el alto exacto disponible de la tablet */
+        /* Mide el alto total libre de la tablet */
         max-height: calc(100vh - 100px) !important;
+        display: flex;
+        flex-direction: column;
+        /* Apila: Botones -> Título -> Tarjetas */
+        gap: 10px;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    /* El panel administrativo ahora se adapta al ancho de las tarjetas */
+    .admin-section {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-top: 0;
+        padding: 12px;
+        gap: 10px;
+        background: var(--bg-tarjeta);
+        border-radius: 12px;
+    }
+
+    .table-container h2 {
+        font-size: 1.2rem;
+        margin: 4px 0;
+    }
+
+    /* 🎴 Las tarjetas calculan su alto restando el espacio del panel de arriba */
+    .contenedor-tarjetas {
+        flex-grow: 1;
+        /* 🔥 Toma de forma automática TODO el espacio restante de la pantalla */
         overflow-y: auto;
-        /* Permite hacer scroll vertical de tarjetas de forma independiente */
-        padding: 4px 8px 4px 0;
+        /* Scroll vertical exclusivo para ver a los operarios */
+        padding: 4px 4px 4px 0;
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
-        /* ⚡ 2 Columnas perfectas */
         gap: 12px;
         align-content: start;
     }
