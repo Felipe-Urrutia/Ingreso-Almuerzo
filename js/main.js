@@ -16,28 +16,28 @@ const PIN_CORRECTO = "3805"; // 🔒 Contraseña real de supervisor
 
 // --- 🚀 2. INICIALIZADOR DE LA APP (DOM Ready) ---
 document.addEventListener("DOMContentLoaded", function () {
-    // Dibujar la tabla inicialmente con los datos persistidos
-    updateTable();
-
-    // 🔄 DESBLOQUEO DE ORIENTACIÓN POR SOFTWARE (Plan de Respaldo)
-    if (screen.orientation && screen.orientation.unlock) {
-        screen.orientation.unlock(); // Rompe cualquier bloqueo vertical previo del navegador
-        console.log("🔄 Orientación desbloqueada por software con éxito.");
+    // 1. Dibujar las tarjetas inicialmente con los datos persistidos en LocalStorage
+    if (typeof updateTable === 'function') {
+        updateTable();
     }
 
-    // Encender la cámara conectándola a la configuración rápida de scanner.js
-    if (document.getElementById("reader")) {
+    // 2. 🔄 DESBLOQUEO DE ORIENTACIÓN POR SOFTWARE
+    if (screen.orientation && screen.orientation.unlock) {
         try {
-            // Si por alguna razón configEscanerRapido no cargó en scanner.js, usamos un fallback optimizado
-            const opcionesCamara = typeof configEscanerRapido !== 'undefined' ? configEscanerRapido : { fps: 25, qrbox: 250, aspectRatio: 1.0 };
-
-            let html5QrcodeScanner = new Html5QrcodeScanner(
-                "reader", opcionesCamara, false
-            );
-            html5QrcodeScanner.render(onScanSuccess, () => { });
-        } catch (error) {
-            console.error("Error al iniciar el motor de la cámara:", error);
+            screen.orientation.unlock(); // Rompe cualquier bloqueo vertical previo del navegador en la Lenovo
+            console.log("🔄 Orientación desbloqueada por software con éxito.");
+        } catch (e) {
+            console.warn("No se pudo desbloquear la orientación por software:", e);
         }
+    }
+
+    // 3. 📸 ARRANQUE ÚNICO BIEN VINCULADO
+    // Delegamos el encendido completo al motor multi-cámara híbrido de scanner.js
+    if (typeof inicializarEscaner === 'function') {
+        inicializarEscaner();
+        console.log("🚀 Motor multi-cámara inicializado desde scanner.js");
+    } else {
+        console.error("❌ Error crítico: inicializarEscaner no está disponible. Verifica el orden de los scripts.");
     }
 });
 
