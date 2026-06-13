@@ -1,13 +1,13 @@
 
 // Archivos críticos que se guardarán para uso offline inmediato
 // (Ahora utilizando rutas relativas para evitar errores de despliegue)
-const CACHE_NAME = 'scanner-pro-v31'; 
+const CACHE_NAME = 'scanner-pro-v32'; 
 
 const ASSETS_TO_CACHE = [                 // 👈 Raíz absoluta del servidor local
   './',                  // 👈 Raíz relativa
   './index.html',        // 👈 Archivo físico de arranque
   './manifest.json',
-  './css/styles.css',    // 👈 Asegúrate de que tus estilos también se guarden offline
+  './css/style.css',    // 👈 Asegúrate de que tus estilos también se guarden offline
 
   // Módulos JS locales
   './js/html5-qrcode.min.js',
