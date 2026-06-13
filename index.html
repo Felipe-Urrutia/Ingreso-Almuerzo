@@ -22,32 +22,47 @@
         <div class="logo-jumbo" onclick="clickSecretoAdmin()" style="cursor: pointer; user-select: none;"></div>
         <h1>Control de Asistencia - Jumbo</h1>
     </header>
-    <main>
-        <div id="scanner-visuals" class="wrapper">
-            <div id="reader"></div>
-            <div id="notification" class="toast" style="display: none;"></div>
-        </div>
 
-        <div class="admin-section">
+    <main class="app-container main-content-layout">
 
-            <div class="admin-only" style="display:none;">
-                <label for="excel-file" class="btn-admin-label">📁 Cargar Base de Personal</label>
-                <input type="file" id="excel-file" accept=".xlsx, .xls" onchange="cargarBasePersonal(event)"
-                    style="margin-top: 10px;">
+        <div class="bloque-izquierdo" style="width: 100%;">
+
+            <div class="control-camara" style="margin-bottom: 10px;">
+                <label for="selector-camaras"
+                    style="font-size: 0.85rem; font-weight: 600; color: var(--texto-oscuro); display: block; margin-bottom: 4px;">📸
+                    Seleccionar Cámara:</label>
+                <select id="selector-camaras"
+                    style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--borde); font-size: 0.9rem; background-color: #f8fafc; color: var(--texto-oscuro);">
+                    <option value="">Cargando cámaras...</option>
+                </select>
             </div>
 
-            <button id="btn-export" onclick="exportToExcel()">📊 Exportar Asistencia (Excel)</button>
-
-            <div class="admin-only" style="display: none;">
-                <button id="btn-clear" onclick="clearAllRecords()">⚠️ Vaciar Historial del Día</button>
+            <div id="scanner-visuals" class="wrapper">
+                <div id="reader"></div>
+                <div id="notification" class="toast" style="display: none;"></div>
             </div>
-        </div>
 
+            <div class="admin-section">
+                <div class="admin-only" style="display:none;">
+                    <label for="excel-file" class="custom-file-upload">📁 Cargar Base de Personal</label>
+                    <input type="file" id="excel-file" accept=".xlsx, .xls" onchange="cargarBasePersonal(event)"
+                        style="display: none;">
+                </div>
+
+                <button id="btn-export" onclick="exportToExcel()">📊 Exportar Asistencia (Excel)</button>
+
+                <div class="admin-only" style="display: none;">
+                    <button id="btn-clear" onclick="clearAllRecords()">⚠️ Vaciar Historial del Día</button>
+                </div>
+            </div>
+
+        </div>
         <section class="table-container">
             <h2>📋 Personal Registrado</h2>
             <div class="contenedor-tarjetas" id="scanned-list">
             </div>
         </section>
+
     </main>
 
     <div id="custom-admin-modal" class="modal-overlay">
