@@ -3,14 +3,14 @@
 // Versión: Anti-Caídas por Archivos Faltantes
 // ==========================================================================
 
-const CACHE_NAME = 'scanner-pro-v34'; // 🔥 Subimos de versión para forzar la limpieza en la Lenovo
+const CACHE_NAME = 'scanner-pro-v35'; // 🔥 Subimos de versión para forzar la limpieza en la Lenovo
 
 // 1. Archivos críticos e indispensables para que la app abra (Si fallan, la app no funciona)
 const CRITICAL_ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './css/style.css', // 🌟 CORREGIDO: Sin la "s" al final para que calce con tu HTML
+  './css/style.css', 
   './js/html5-qrcode.min.js',
   './js/xlsx.style.min.js',
   './js/main.js',
