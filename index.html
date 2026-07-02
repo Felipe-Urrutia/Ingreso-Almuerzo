@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=no">
     <title>Casino Jumbo</title>
 
     <link rel="shortcut icon" type="image/png" href="./img/icon-192.png">
@@ -13,68 +13,143 @@
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="./css/style.css">
 
-    <script src="./js/html5-qrcode.min.js"></script>
     <script src="./js/xlsx.style.min.js"></script>
 </head>
 
 <body>
 
-    <header>
-        <div class="logo-jumbo"></div>
-        <h1>Control de Asistencia - Jumbo</h1>
+    <header class="welcome-card">
+        <button id="admin-btn" class="admin-secret-btn" onclick="clickSecretoAdmin()">
+            <span id="lock-icon">🔒</span>
+        </button>
+
+        <div class="header-flex-container">
+            <div class="aurora-avatar-wrapper">
+                <img src="./img/Aurora.png" alt="Aurora Casino" class="aurora-header-img">
+            </div>
+            
+            <div class="header-text-block">
+                <h2>¡Hola! Bienvenido</h2>
+                <div class="subtitle">Escanea tu credencial aquí 👇</div>
+            </div>
+        </div>
     </header>
 
-    <main>
-        <div id="scanner-visuals" class="wrapper">
-            <div id="reader"></div>
-            <div id="notification" class="toast" style="display: none;"></div>
+    <div id="admin-tabs-nav" class="admin-only" style="display: none;">
+        <button class="tab-btn active" id="btn-tab-kiosco" onclick="switchTab('vista-kiosco')">📱 Vista Kiosco</button>
+        <button class="tab-btn" id="btn-tab-dashboard" onclick="switchTab('vista-dashboard')">📊 Dashboard Analítico</button>
+    </div>
+
+    <main class="app-container main-content-layout">
+
+        <input type="text" id="lector-externo-input" autofocus autocomplete="off" 
+               style="position: absolute; opacity: 0; top: -100px; left: -100px; z-index: -1;">
+
+        <div id="vista-kiosco" class="tab-content active-content">
+            <div class="bloque-izquierdo admin-only" id="contenedor-camara-local" style="display: none; width: 100%;">
+                <div class="control-camara" style="margin-bottom: 10px;">
+                    <label for="selector-camaras" style="font-size: 0.85rem; font-weight: 600; color: var(--texto-oscuro); display: block; margin-bottom: 4px;">
+                        📸 Seleccionar Cámara Física:
+                    </label>
+                    <select id="selector-camaras" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--borde); font-size: 0.9rem; background-color: #f8fafc; color: var(--texto-oscuro);">
+                        <option value="">Cargando cámaras...</option>
+                    </select>
+                </div>
+                <div id="scanner-visuals" class="wrapper">
+                    <div id="reader"></div>
+                </div>
+            </div>
+            
+            <section class="table-container">
+                <div id="notification" class="toast" style="display: none; margin-bottom: 15px; width: 100%;"></div>
+                
+                <h2>📋 Últimos ingresos en tiempo real</h2>
+                <div class="contenedor-tarjetas" id="scanned-list"></div>
+            </section>
         </div>
 
-        <section id="admin-panel" class="admin-section">
-            <input type="file" id="excel-upload" accept=".xlsx, .xls">
-            <button id="btn-text">Cargar BD Personal</button>
-            <button id="btn-export" onclick="exportToExcel()">Exportar Excel Analítico</button>
-            <button id="btn-clear" onclick="clearAllRecords()">Vaciar Todo</button>
-            <input type="password" id="pin-input" placeholder="PIN Admin">
-        </section>
+        <div id="vista-dashboard" class="tab-content" style="display: none;">
+            <div class="dashboard-metrics">
+                <div class="metric-card">
+                    <span class="metric-icon">👥</span>
+                    <div class="metric-data">
+                        <h3 id="dash-total-marcajes">0</h3>
+                        <p>Total Marcajes</p>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-icon">🏢</span>
+                    <div class="metric-data">
+                        <h3 id="dash-areas-activas">0</h3>
+                        <p>Áreas Presentes</p>
+                    </div>
+                </div>
+            </div>
 
-        <section class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Hora</th>
-                        <th>Colaborador</th>
-                        <th>Sección</th>
-                        <th>Horario</th>
-                        <th>ID / RUT</th>
-                        <th class="admin-only">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="scanned-list">
-                </tbody>
-            </table>
-        </section>
+            <section class="table-container">
+                <div class="admin-section-dash">
+                    <div class="search-box-wrapper">
+                        <input type="text" id="dash-search" placeholder="🔍 Buscar por nombre, RUT o área..." oninput="filtrarDashboard()">
+                    </div>
+                    
+                    <div class="dash-actions">
+                        <label for="excel-file" class="custom-file-upload">📁 Importar Personal</label>
+                        <input type="file" id="excel-file" accept=".xlsx, .xls" onchange="cargarBasePersonal(event)" style="display: none;">
+                        
+                        <button id="btn-export" onclick="exportToExcel()">📊 Descargar Excel</button>
+                        <button id="btn-clear" class="btn-danger" onclick="clearAllRecords()">⚠️ Vaciar Todo</button>
+                    </div>
+                </div>
+
+                <h2>🗂️ Registro Maestro de Asistencia</h2>
+                
+                <div class="table-responsive-wrapper">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Hora</th>
+                                <th>RUT / ID</th>
+                                <th>Colaborador</th>
+                                <th>Área / Cargo</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboard-table-body">
+                            </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
     </main>
+
     <div id="custom-admin-modal" class="modal-overlay">
         <div class="modal-content">
             <h3>Autenticación de Seguridad</h3>
             <p>Ingrese credencial de supervisor para acceder:</p>
             <input type="password" id="modal-pin" placeholder="••••" maxlength="6" autocomplete="off">
             <div class="modal-buttons">
-                <button class="btn-modal-cancel" onclick="cerrarModalSecreto()">Cancelar</button>
                 <button class="btn-modal-confirm" onclick="verificarPinModal()">Ingresar</button>
+                <button class="btn-modal-cancel" onclick="cerrarModalSecreto()">Cancelar</button>
             </div>
         </div>
     </div>
 
-    <script src="js/excel.js"></script>
-    <script src="js/scanner.js"></script>
-    <script src="js/main.js"></script>
-</body>
+    <div id="custom-confirm-modal" class="modal-overlay">
+        <div class="modal-content" style="border-top: 4px solid #ef4444;">
+            <h3>⚠️ ¿Vaciar Historial?</h3>
+            <p>Esta acción eliminará de forma permanente TODOS los marcajes del día. No se puede deshacer.</p>
+            <div class="modal-buttons">
+                <button class="btn-modal-confirm" style="background-color: #ef4444 !important;" onclick="ejecutarVaciadoReal()">Sí, Borrar Todo</button>
+                <button class="btn-modal-cancel" onclick="cerrarConfirmModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
 
-<script src="./js/excel.js"></script>
-<script src="./js/scanner.js"></script>
-<script src="./js/main.js"></script>
+    <script src="./js/html5-qrcode.min.js"></script>
+    <script src="./js/scanner.js"></script>
+    <script src="./js/excel.js"></script>
+    <script src="./js/main.js"></script>
 </body>
 
 </html>

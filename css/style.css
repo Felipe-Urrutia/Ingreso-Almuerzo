@@ -1,0 +1,217 @@
+/* ==========================================================================
+   ESTILOS PREMIUM: AURORA, BOTÓN SECRETO Y DASHBOARD
+   ========================================================================== */
+
+:root {
+    --jumbo-green: #56D683;
+    --dark-bg: #121212;
+    --card-bg: #1e1e1e;
+    --text-muted: #888888;
+}
+
+/* --- TARJETA DE BIENVENIDA (HEADER) --- */
+.welcome-card {
+    position: relative;
+    background: linear-gradient(135deg, #1e1e1e 0%, #141414 100%);
+    padding: 20px 15px;
+    border-bottom: 3px solid var(--jumbo-green);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.header-flex-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.aurora-avatar-wrapper {
+    position: relative;
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    padding: 3px;
+    background: linear-gradient(45deg, var(--jumbo-green), #2ecc71);
+    box-shadow: 0 0 15px rgba(86, 214, 131, 0.3);
+}
+
+.aurora-header-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #000;
+}
+
+.header-text-block h2 {
+    color: #ffffff;
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.welcome-card .subtitle {
+    color: var(--jumbo-green);
+    font-size: 0.85rem;
+    margin-top: 3px;
+    font-weight: 500;
+}
+
+/* --- BOTÓN ADMINISTRADOR CAMUFLADO --- */
+.admin-secret-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: transparent;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    z-index: 100;
+    outline: none;
+    opacity: 0.12; 
+    filter: grayscale(100%); 
+    -webkit-tap-highlight-color: transparent; 
+    transition: opacity 0.2s ease;
+}
+
+.admin-secret-btn:active {
+    opacity: 0.5;
+}
+
+/* --- SISTEMA DE PESTAÑAS (TABS) --- */
+#admin-tabs-nav {
+    display: flex;
+    background: #1a1a1a;
+    padding: 6px;
+    gap: 6px;
+    border-bottom: 1px solid #2d2d2d;
+}
+
+.tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 12px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+    background: var(--jumbo-green);
+    color: #000000;
+}
+
+/* --- TARJETAS DE MÉTRICAS (KPIs) --- */
+.dashboard-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 15px;
+}
+
+.metric-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+
+.metric-icon {
+    font-size: 1.6rem;
+    background: #f1f5f9;
+    padding: 6px;
+    border-radius: 50%;
+}
+
+.metric-data h3 {
+    margin: 0;
+    font-size: 1.4rem;
+    color: #1e1e1e;
+}
+
+.metric-data p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+/* --- CONTROLES Y BUSCADOR DEL DASHBOARD --- */
+.admin-section-dash {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.search-box-wrapper input {
+    width: 100%;
+    padding: 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+}
+
+.dash-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.dash-actions button, .dash-actions .custom-file-upload {
+    flex: 1;
+    min-width: 110px;
+    text-align: center;
+    font-size: 0.8rem;
+    padding: 10px;
+    border-radius: 6px;
+}
+
+.btn-danger {
+    background-color: #ef4444 !important;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+/* --- TABLA MAESTRA --- */
+.table-responsive-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.85rem;
+}
+
+.dashboard-table th {
+    background: #f8fafc;
+    color: #475569;
+    padding: 10px;
+    font-weight: 600;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.dashboard-table td {
+    padding: 10px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+}
+
+.dashboard-table tr:nth-child(even) {
+    background-color: #f8fafc;
+}

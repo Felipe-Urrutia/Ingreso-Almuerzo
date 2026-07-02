@@ -1,29 +1,51 @@
-const CACHE_NAME = 'scanner-pro-v10';
+// ==========================================================================
+// SERVICE WORKER: BLINDAJE OFFLINE INDUSTRIAL JUMBO
+// Versión: Anti-Caídas por Archivos Faltantes
+// ==========================================================================
 
-// Archivos críticos que se guardarán para uso offline inmediato
-// (Ahora utilizando rutas relativas para evitar errores de despliegue)
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'scanner-pro-v36'; // 🔥 Subimos de versión para forzar la limpieza en la Lenovo
+
+// 1. Archivos críticos e indispensables para que la app abra (Si fallan, la app no funciona)
+const CRITICAL_ASSETS = [
   './',
   './index.html',
-  './html5-qrcode.min.js',
-  './xlsx.style.min.js', // 👈 Cambiado aquí para cachear la librería con estilos
   './manifest.json',
-  './icon-512.png',
-  './icon-192.png',
-  './Aurora.png'
+  './css/style.css', // 🌟 CORREGIDO: Sin la "s" al final para que calce con tu HTML
+  './js/html5-qrcode.min.js',
+  './js/xlsx.style.min.js',
+  './js/main.js',
+  './js/scanner.js',
+  './js/excel.js'
 ];
 
-// Instalar el Service Worker y almacenar los archivos en caché
+// 2. Archivos secundarios (Si un logo o icono no carga, no queremos que rompa toda la PWA)
+const OPTIONAL_ASSETS = [
+  './img/icon-512.png',
+  './img/icon-192.png',
+  './img/Aurora.png'
+];
+
+// Instalar el Service Worker con tolerancia a errores de diseño
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('📦 Servidor offline: Archivos asegurados en caché');
-      return cache.addAll(ASSETS_TO_CACHE);
-    }).then(() => self.skipWaiting()) // Fuerza al SW a activarse de inmediato
+      console.log('📦 Servidor offline: Descargando archivos críticos...');
+      
+      // Primero aseguramos lo vital
+      return cache.addAll(CRITICAL_ASSETS).then(() => {
+        // Después intentamos guardar las imágenes de forma segura
+        OPTIONAL_ASSETS.forEach(asset => {
+          fetch(asset).then(response => {
+            if (response.ok) cache.put(asset, response);
+          }).catch(err => console.warn(`Aviso: No se pudo precargar el recurso opcional: ${asset}`));
+        });
+      });
+
+    }).then(() => self.skipWaiting())
   );
 });
 
-// Limpiar cachés antiguos si decides actualizar la app en el futuro
+// Limpiar cachés antiguos
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -39,19 +61,15 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// ESTRATEGIA: Cache-First (Priorizar Caché sobre Internet)
-// Si el archivo está en el dispositivo, lo entrega de inmediato sin mirar si hay señal.
+// ESTRATEGIA: Cache-First (Operación Local Estricta)
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
-        return cachedResponse; // Retorna el archivo local instantáneamente
+        return cachedResponse; 
       }
-
-      // Si por alguna razón pide algo que no está en caché, intenta buscarlo en red
       return fetch(event.request).catch(() => {
-        // Si falla la red y no hay caché, la app no se cae catastróficamente
-        console.log('🌐 Modo Offline Activo: No se pudo conectar a la red.');
+        console.log('🌐 Modo Offline Activo: Respondiendo desde almacenamiento local.');
       });
     })
   );
